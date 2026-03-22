@@ -1,0 +1,85 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Build & Dist
+/dist
+/build
+/.next
+/out
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Temporary files
+uploads/
+temp/
+tmp/
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db
+.env.backup
+.idea
+.vscode
+
+# Testing
+/coverage
+.nyc_output
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Misc
+.cache/
+.parcel-cache
+.turbo
+
+# Database files (if using local SQLite, etc)
+*.db
+*.sqlite
+*.sqlite3
+
+# Audio files (if needed)
+*.mp3
+*.wav
+
+# Video files (if needed)
+*.mp4
+*.mov
+*.avi
+
+# PDF temp files (from uploads)
+*.tmp.pdf
