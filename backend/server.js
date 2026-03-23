@@ -5,12 +5,32 @@ const cors = require("cors");
 const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume } = require("./services/geminiExtractor");
+const { connect } = require("mongoose");
+const connectDB  = require("./database/db")
+const User = require("./models/test")
 
 const app = express();
 app.use(express.json());
 const upload = multer({ dest: "uploads/" });
 //upload , multer ka object hai aur hamari file ka object bana dega meta data ke sath aur usko uploads folder me store kar dega
 app.use(cors());
+
+
+connectDB();
+
+
+app.get("/insert", async (req,res)=>{
+
+    const newUser = new User({
+        username: "varshil",
+        password: "1234"
+    });
+
+    await newUser.save();
+
+    res.send("User Inserted");
+});
+
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
     const filePath = req.file.path
