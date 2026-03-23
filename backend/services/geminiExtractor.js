@@ -1,15 +1,17 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const openAI = require("openai")
+
 const dotenv = require("dotenv")
 dotenv.config();
 
 
 const fs = require("fs")
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-
-const model = genAI.getGenerativeModel({
-  model: "gemini-3-flash-preview"
+const client = new openAI({
+  apiKey:process.env.GROK_API_KEY,
+  baseURL:"https://api.groq.com/openai/v1"
 })
+
 
 function buildPrompt(text = "") {
 
@@ -68,8 +70,11 @@ async function extractFromText(data) {
   try {
     const prompt = buildPrompt(data.text);
 
-    const result = await model.generateContent(prompt)
-    const responseText = result.response.text()
+const result = await client.responses.create({
+    model: "openai/gpt-oss-20b",
+    input: prompt,
+});
+    const responseText = result.output_text
     return JSON.parse(cleanJSON(responseText));
 
 
@@ -86,7 +91,11 @@ async function extractFromFile(filePath, mimeType = "application/pdf") {
     const fileBuffer = fs.readFileSync(filePath);
     const base64File = fileBuffer.toString("base64");
 
-    const result = await model.generateContent([
+
+
+    const result = await client.responses.create({
+    model: "openai/gpt-oss-20b",
+    input: [
       {
         inlineData: {
           mimeType,
@@ -94,10 +103,12 @@ async function extractFromFile(filePath, mimeType = "application/pdf") {
         },
       },
       buildPrompt(),
-    ]);
+    ],
+});
 
-    const responseText = result.response.text();
+    const responseText = result.output_text;
     return JSON.parse(cleanJSON(responseText));
+
   } catch (err) {
     console.error("Gemini File Extraction Error:", err);
     throw new Error("Failed to extract data from file");
@@ -109,8 +120,11 @@ async function extractFromFile(filePath, mimeType = "application/pdf") {
 async function extractFromResume(data) {
   try {
     const prompt = buildResumePrompt(data.text);
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const result = await client.responses.create({
+    model: "openai/gpt-oss-20b",
+    input: prompt
+});
+    const responseText = result.output_text;
     return JSON.parse(cleanJSON(responseText));
 
   }
@@ -151,8 +165,11 @@ OUTPUT FORMAT:
 }
 `;
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const result = await client.responses.create({
+    model: "openai/gpt-oss-20b",
+    input: prompt,
+});
+  const text = result.output_text;
 
   return JSON.parse(text);
 }

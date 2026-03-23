@@ -8,6 +8,7 @@
     "fd": "^0.0.3",
     "fs": "^0.0.1-security",
     "multer": "^2.1.1",
+    "openai": "^6.32.0",
     "pdf-parse": "^1.1.4"
   },
   "name": "backend",
