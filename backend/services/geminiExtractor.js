@@ -8,8 +8,8 @@ dotenv.config();
 const fs = require("fs")
 
 const client = new openAI({
-  apiKey:process.env.GROK_API_KEY,
-  baseURL:"https://api.groq.com/openai/v1"
+  apiKey: process.env.GROK_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1"
 })
 
 
@@ -33,7 +33,7 @@ RETURN ONLY VALID JSON (no markdown, no explanation):
     "skills": ["list of required skills"],
     "experience": "experience requirement or null"
   },
-  "salaryRange/stipend": "salary or null",
+  "salary": "salary/stipend or null",
   "jobType": "full-time/part-time/internship",
   "portalLink": "link if mentioned or null",
   "applicationLink": "application URL or null"
@@ -70,10 +70,10 @@ async function extractFromText(data) {
   try {
     const prompt = buildPrompt(data.text);
 
-const result = await client.responses.create({
-    model: "openai/gpt-oss-20b",
-    input: prompt,
-});
+    const result = await client.responses.create({
+      model: "openai/gpt-oss-20b",
+      input: prompt,
+    });
     const responseText = result.output_text
     return JSON.parse(cleanJSON(responseText));
 
@@ -94,17 +94,17 @@ async function extractFromFile(filePath, mimeType = "application/pdf") {
 
 
     const result = await client.responses.create({
-    model: "openai/gpt-oss-20b",
-    input: [
-      {
-        inlineData: {
-          mimeType,
-          data: base64File,
+      model: "openai/gpt-oss-20b",
+      input: [
+        {
+          inlineData: {
+            mimeType,
+            data: base64File,
+          },
         },
-      },
-      buildPrompt(),
-    ],
-});
+        buildPrompt(),
+      ],
+    });
 
     const responseText = result.output_text;
     return JSON.parse(cleanJSON(responseText));
@@ -121,9 +121,9 @@ async function extractFromResume(data) {
   try {
     const prompt = buildResumePrompt(data.text);
     const result = await client.responses.create({
-    model: "openai/gpt-oss-20b",
-    input: prompt
-});
+      model: "openai/gpt-oss-20b",
+      input: prompt
+    });
     const responseText = result.output_text;
     return JSON.parse(cleanJSON(responseText));
 
@@ -168,10 +168,10 @@ OUTPUT FORMAT:
   const result = await client.responses.create({
     model: "openai/gpt-oss-20b",
     input: prompt,
-});
+  });
   const text = result.output_text;
 
-  return JSON.parse(text);
+  return JSON.parse(cleanJSON(text));
 }
 module.exports = {
   extractFromFile,
