@@ -6,75 +6,81 @@ const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume } = require("./services/geminiExtractor");
 const { connect } = require("mongoose");
-const connectDB  = require("./database/db")
-const User = require("./models/test")
+const connectDB = require("./database/db");
+// const User = require("./models/test");
+const uploadToCloudinary = require("./services/cloudinaryUpload");
 
 const app = express();
 app.use(express.json());
 const upload = multer({ dest: "uploads/" });
+const uploadram = multer({ storage: multer.memoryStorage() });
 //upload , multer ka object hai aur hamari file ka object bana dega meta data ke sath aur usko uploads folder me store kar dega
 app.use(cors());
 
-
 connectDB();
 
+// app.use("/signup",auth)
 
-app.get("/insert", async (req,res)=>{
+app.post("/uploadfile", uploadram.single("file"), async (req, res) => {
+  console.log(req.file);
 
-    const newUser = new User({
-        username: "varshil",
-        password: "1234"
-    });
+  const buffer = req.file.buffer;
 
-    await newUser.save();
+  console.log(buffer)
 
-    res.send("User Inserted");
+  const result = await uploadToCloudinary(buffer);
+
+  console.log(result);
 });
 
+app.get("/insert", async (req, res) => {
+  const newUser = new User({
+    username: "varshil",
+    password: "1234",
+  });
+
+  await newUser.save();
+
+  res.send("User Inserted");
+});
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
-    const filePath = req.file.path
-    try {
-        console.log("Extracting information from the job posting...")
-        const result = await jobPostingExtractor(filePath)
-        console.log(result)
-        res.json(result)
-
-    }
-    catch (err) {
-        res.status(500).json({
-            error: "Extraction Failed"
-        })
-    }
-})
+  const filePath = req.file.path;
+  try {
+    console.log("Extracting information from the job posting...");
+    const result = await jobPostingExtractor(filePath);
+    console.log(result);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({
+      error: "Extraction Failed",
+    });
+  }
+});
 app.post("/resume/parse", upload.single("pdf"), async (req, res) => {
-    const filePath = req.file.path
-    try {
-        const result = await resumeParse(filePath)
-        console.log("Extracting information from the resume...")
-        console.log(result)
-        res.json(result)
-    }
-    catch (err) {
-        res.status(500).json({
-            error: "Extraction Failed"
-        })
-    }
-})
+  const filePath = req.file.path;
+  try {
+    const result = await resumeParse(filePath);
+    console.log("Extracting information from the resume...");
+    console.log(result);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({
+      error: "Extraction Failed",
+    });
+  }
+});
 app.post("/match", async (req, res) => {
-    try {
-
-        const { resumeJSON, jobJSON } = req.body;
-        const result = await analyseMatchResume(resumeJSON, jobJSON);
-        console.log(result);
-        res.status(200).json(result);
-    }
-    catch (err) {
-        console.log(err)
-        res.status(500).json({
-            error: "Match failed"
-        })
-    }
-})
+  try {
+    const { resumeJSON, jobJSON } = req.body;
+    const result = await analyseMatchResume(resumeJSON, jobJSON);
+    console.log(result);
+    res.status(200).json(result);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      error: "Match failed",
+    });
+  }
+});
 app.listen(5000, () => console.log("Server running on 5000"));
-

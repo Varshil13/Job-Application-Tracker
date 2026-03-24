@@ -3,6 +3,9 @@ import { useState } from "react";
 function App() {
   const [jobData, setJobData] = useState(null);
   const [resumeData, setResumeData] = useState(null);
+  const [file, setFile] = useState(null);
+
+
   async function handleinfopdf(input, type) {
     const file = input.target.files[0];
 
@@ -50,6 +53,29 @@ function App() {
     const data = await res.json();
     console.log("Match Result:", data);
   }
+
+  async function handledoc(input){
+
+    const formData = new FormData()
+
+    formData.append("file",input.target.files[0])
+
+    const res = await fetch("http://localhost:5000/uploadfile",{
+      method:"POST",
+      body:formData
+
+    })
+
+    console.log("sending file")
+    
+
+    const data = await res.text();
+
+    console.log(data);
+
+  }
+
+
   return (
     <>
       <h3>Application</h3>
@@ -57,6 +83,7 @@ function App() {
         type="file"
         accept="application/pdf"
         onChange={(e) => handleinfopdf(e, "application")}
+        
       />
       <h3>Resume</h3>
       <input
@@ -65,6 +92,15 @@ function App() {
         onChange={(e) => handleinfopdf(e, "resume")}
       />
       <button onClick={handleMatch}>Check Match</button>
+
+
+      <h3>DOCument</h3>
+      <input
+        type="file"
+        accept="image/*,application/pdf"
+        onChange={handledoc}
+      />
+
     </>
   );
 }
