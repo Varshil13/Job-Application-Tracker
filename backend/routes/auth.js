@@ -1,39 +1,9 @@
-// const router  = require("express").Router()
-// const bcrypt = require("bcryptjs")
-// const jwt  = require("jsonwebtoken")
-// const User = require("../models/userSchema")
-
-// router.post("/signup", async(req,res)=>{
-//     try {
-
-//         const { name,email,password } = req.body;
+const express = require("express")
+const signup = require("../controllers/authController")
+const router  = express.Router()
 
 
-//         if(!email || !password || !name){
-//             return res.status(400).json({message : "All fields req"})
-//         }
+router.post("/signup" , signup)
+// router.post("/signin" , signin)
 
-//         const existingUser = await User.findOne({email});
-
-//         if(!existingUser){
-//             const hashedPass = await bcrypt.hash(password, 10)
-
-
-//             const newUser = await User.create({
-//                 name : name,
-//                 email: email,
-//                 password : hashedPass
-//             })
-
-//             const token = jwt.sign(
-//                 {id : newUser._id},
-//                 process.env.JWT_SECRET,
-//                 {expiresIn : "1d"}
-//             ) 
-
-//             res.cookie()
-
-//         }
-
-//     }
-// })
+module.exports = router 

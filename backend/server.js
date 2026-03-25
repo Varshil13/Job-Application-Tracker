@@ -2,24 +2,26 @@ const express = require("express");
 const multer = require("multer");
 
 const cors = require("cors");
+const cookieParser = require("cookie-parser")
 const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume } = require("./services/geminiExtractor");
 const { connect } = require("mongoose");
-const connectDB = require("./database/db");
+const connectDB = require("./config/db");
 // const User = require("./models/test");
 const uploadToCloudinary = require("./services/cloudinaryUpload");
-
+const authRoutes = require("./routes/auth")
 const app = express();
 app.use(express.json());
 const upload = multer({ dest: "uploads/" });
 const uploadram = multer({ storage: multer.memoryStorage() });
 //upload , multer ka object hai aur hamari file ka object bana dega meta data ke sath aur usko uploads folder me store kar dega
 app.use(cors());
+app.use(cookieParser());
 
 connectDB();
 
-// app.use("/signup",auth)
+app.use("/auth",authRoutes)
 
 app.post("/uploadfile", uploadram.single("file"), async (req, res) => {
   console.log(req.file);
