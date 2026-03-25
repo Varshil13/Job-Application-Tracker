@@ -25,20 +25,22 @@ async function signup(req,res){
                 password : hashedPass
             })
 
+    
+
             const token = jwt.sign(
                 {id : newUser._id},
                 process.env.JWT_SECRET,
-                {expiresIn : "1d"}
+                {expiresIn : "4d"}
             ) 
 
             res.cookie("token" , token ,{
-                            httpOnly: true,
+             httpOnly: true,
             secure: false,
             sameSite: "lax",
             maxAge: 7 * 24 * 60 * 60 * 1000
 
             })
-            res.status(201).json({message :"Signup Success",
+            return res.status(201).json({message :"Signup Success",
                 user:{
                     id : newUser._id,
                     name : newUser.name,
@@ -48,28 +50,63 @@ async function signup(req,res){
 
         }
 
+        res.status(400).json({message : "User Already Exists" })
 
     }
     catch(err){
+        console.log(err)
         res.status(500).json({message : "Server Error"})
     }
 }
 
 async function signin(req,res){
-    const {email, password} = req.body
+    try {
 
-    if(!email || !password){
-        return res.status(200).json({message : "All Fields are Necessary"})
+        const {email, password} = req.body;
+
+        if(!email || !password){
+            return res.status(400).json({message : "All Fields Required"})
+        }
+
+        const existingUser = await User.findOne({email})
+
+        if(!existingUser){
+            return res.status(400).json({message : "User Does Not Exists"})
+        }
+
+        const isMatch = await bcrypt.compare(password, existingUser.password)
+
+        if(!isMatch){
+            return res.status(400).json({message : "Invalid Credentials"})
+        }
+
+        const token = jwt.sign(
+            {id : existingUser._id},
+            process.env.JWT_SECRET,
+            {expiresIn : "4d"}
+        )
+
+        res.cookie("token" , token ,{
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+
+        res.status(200).json({
+            message :"SignIn Success",
+            user:{
+                id : existingUser._id,
+                name : existingUser.name,
+                email: existingUser.email
+            }
+        })
+
+    } catch(err){
+        console.error(err)
+        res.status(500).json({message : "Server Error"})
     }
-
-    const user = await User.findOne({email})
-
+}
 
 
-
-
-
- }
-
-
-module.exports = signup
+module.exports = {signup, signin}

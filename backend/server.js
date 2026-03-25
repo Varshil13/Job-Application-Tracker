@@ -13,6 +13,7 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth")
 const { uploadToCloudinary, encryptBuffer, decryptBuffer } = require("./services/cloudinaryUpload");
 const { decrypt } = require("dotenv");
+const authMiddleware = require("./middleware/authmiddleware");
 
 const app = express();
 app.use(express.json());
@@ -29,6 +30,7 @@ app.use("/auth",authRoutes)
 app.post("/uploadfile", uploadram.single("file"), async (req, res) => {
 
   try{
+   
     const buffer = req.file.buffer;
     const encryptedBuffer = encryptBuffer(buffer);
   
@@ -52,7 +54,7 @@ app.post("/uploadfile", uploadram.single("file"), async (req, res) => {
   
 });
 
-app.get("/getfile" , async(req,res)=>{
+app.get("/getfile" ,authMiddleware ,async(req,res)=>{
   try{
     const fileUrl = req.query.url;
 
