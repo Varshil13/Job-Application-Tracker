@@ -6,9 +6,13 @@ const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume } = require("./services/geminiExtractor");
 const { connect } = require("mongoose");
+
 const connectDB = require("./config/db");
 // const User = require("./models/test");
-const uploadToCloudinary = require("./services/cloudinaryUpload");
+
+const authRoutes = require("./routes/auth")
+const { uploadToCloudinary, encryptBuffer, decryptBuffer } = require("./services/cloudinaryUpload");
+const { decrypt } = require("dotenv");
 
 const app = express();
 app.use(express.json());
@@ -23,17 +27,70 @@ connectDB();
 app.use("/auth",authRoutes)
 
 app.post("/uploadfile", uploadram.single("file"), async (req, res) => {
-  console.log(req.file);
-  const buffer = req.file.buffer;
-  const encryptedBuffer = encryptBuffer(buffer);
 
-  console.log(buffer)
-  console.log(encryptedBuffer)
+  try{
+    const buffer = req.file.buffer;
+    const encryptedBuffer = encryptBuffer(buffer);
+  
+    
+    
+  
+    const result = await uploadToCloudinary(encryptedBuffer);
+  
+    console.log(result);
 
-  const result = await uploadToCloudinary(encryptedBuffer);
+  }
+  catch(err){
+        console.error("UPLOAD ERROR:", err);
 
-  console.log(result);
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+
+  }
+  
 });
+
+app.get("/getfile" , async(req,res)=>{
+  try{
+    const fileUrl = req.query.url;
+
+    if(!fileUrl){
+      return res.status(400).json({
+        success : false,
+        message : "File Url Reqired"
+      })
+    }
+
+    const response = await fetch(fileUrl)
+
+    if(!response.ok){
+      throw new Error("Filed to download file from Cloudinary")
+
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const encryptedBuffer = Buffer.from(arrayBuffer)
+
+    const originalBuffer = decryptBuffer(encryptedBuffer)
+    res.setHeader(
+      "content-Disposition",
+      "attachment; fimename = file "
+    )
+
+    res.send(originalBuffer)
+
+  }
+  catch (err){
+    console.error("Download Error:",err)
+
+    res.status(500).json({
+      success : false,
+      message : err.message
+    })
+  }
+})
 
 // app.get("/insert", async (req, res) => {
 //   const newUser = new User({
