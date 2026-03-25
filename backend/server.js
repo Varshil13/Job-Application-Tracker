@@ -1,15 +1,13 @@
 const express = require("express");
 const multer = require("multer");
-
 const cors = require("cors");
 const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume } = require("./services/geminiExtractor");
 const { connect } = require("mongoose");
-const connectDB = require("./database/db");
+const connectDB = require("./config/db");
 // const User = require("./models/test");
-const uploadToCloudinary = require("./services/cloudinaryUpload");
-
+const { uploadToCloudinary, encryptBuffer } = require("./services/cloudinaryUpload");
 const app = express();
 app.use(express.json());
 const upload = multer({ dest: "uploads/" });
@@ -23,29 +21,31 @@ connectDB();
 
 app.post("/uploadfile", uploadram.single("file"), async (req, res) => {
   console.log(req.file);
-
   const buffer = req.file.buffer;
+  const encryptedBuffer = encryptBuffer(buffer);
 
   console.log(buffer)
+  console.log(encryptedBuffer)
 
-  const result = await uploadToCloudinary(buffer);
+  const result = await uploadToCloudinary(encryptedBuffer);
 
   console.log(result);
 });
 
-app.get("/insert", async (req, res) => {
-  const newUser = new User({
-    username: "varshil",
-    password: "1234",
-  });
+// app.get("/insert", async (req, res) => {
+//   const newUser = new User({
+//     username: "varshil",
+//     password: "1234",
+//   });
 
-  await newUser.save();
+//   await newUser.save();
 
-  res.send("User Inserted");
-});
+//   res.send("User Inserted");
+// });
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
   const filePath = req.file.path;
+
   try {
     console.log("Extracting information from the job posting...");
     const result = await jobPostingExtractor(filePath);
