@@ -7,11 +7,12 @@ const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume } = require("./services/geminiExtractor");
 const { connect } = require("mongoose");
 
+
 const connectDB = require("./config/db");
 // const User = require("./models/test");
 
 const authRoutes = require("./routes/auth")
-const { uploadToCloudinary, encryptBuffer, decryptBuffer } = require("./services/cloudinaryUpload");
+const { uploadToCloudinary, encryptBuffer, decryptBuffer,savetodb } = require("./services/cloudinaryUpload");
 const { decrypt } = require("dotenv");
 const authMiddleware = require("./middleware/authmiddleware");
 
@@ -27,19 +28,20 @@ connectDB();
 
 app.use("/auth",authRoutes)
 
-app.post("/uploadfile", uploadram.single("file"), async (req, res) => {
+app.post("/uploadfile", authMiddleware,uploadram.single("file"), async (req, res) => {
 
   try{
    
     const buffer = req.file.buffer;
     const encryptedBuffer = encryptBuffer(buffer);
-  
-    
-    
-  
     const result = await uploadToCloudinary(encryptedBuffer);
+    console.log(req.user.id)
+
+
+    const savedresult = await savetodb(result,req);
+   
   
-    console.log(result);
+    console.log(savedresult);
 
   }
   catch(err){

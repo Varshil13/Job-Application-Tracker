@@ -1,6 +1,7 @@
 
 const cloudinary = require("../config/cloudinary")
 const crypto = require("crypto")
+const Doc = require("../models/docSchema")
 const dotenv = require("dotenv")
 dotenv.config();
 
@@ -70,4 +71,21 @@ function decryptBuffer(encryptedBuffer) {
 }
 
 
-module.exports = { uploadToCloudinary, encryptBuffer , decryptBuffer};
+
+async function savetodb(result,req){
+
+return await Doc.create({
+
+  userId: req.user.id,   // ⭐ VERY IMPORTANT
+
+  public_id: result.public_id,
+  url: result.secure_url,
+  resource_type: result.resource_type,
+
+  mimeType: req.file.mimetype,
+  originalName: req.file.originalname,
+  size: result.bytes
+
+})
+}
+module.exports = { uploadToCloudinary, encryptBuffer , decryptBuffer , savetodb};

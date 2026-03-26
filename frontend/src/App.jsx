@@ -62,8 +62,8 @@ function App() {
 
     const res = await fetch("http://localhost:5000/uploadfile",{
       method:"POST",
-      body:formData
-
+      body:formData,
+      credentials: "include" 
     })
 
     console.log("sending file")

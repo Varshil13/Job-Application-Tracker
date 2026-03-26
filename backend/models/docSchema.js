@@ -1,27 +1,47 @@
-const mongoose = require("mongoose");
-const documentSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User"
-    },
+const mongoose = require("mongoose")
 
-    name: String,
-    fileUrl: String,
+const docSchema = new mongoose.Schema({
 
-    type: {
-        type: String,
-        enum: ["resume", "coverLetter", "marksheet", "other"]
-    },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
 
-    isLocked: {
-        type: Boolean,
-        default: true
-    },
+  public_id: {
+    type: String,
+    required: true
+  },
 
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-});
+  url: {
+    type: String,
+    required: true
+  },
 
-module.exports = mongoose.model("Document", documentSchema);
+  resource_type: {
+    type: String,
+    required: true
+  },
+
+  mimeType: {
+    type: String,
+    required: true
+  },
+
+  originalName: {
+    type: String,
+    required: true
+  },
+
+  size: {
+    type: Number
+  },
+
+  uploadedAt: {
+    type: Date,
+    default: Date.now
+  }
+
+})
+
+module.exports = mongoose.model("Doc", docSchema)
