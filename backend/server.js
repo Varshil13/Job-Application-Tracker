@@ -12,7 +12,7 @@ const connectDB = require("./config/db");
 // const User = require("./models/test");
 
 const authRoutes = require("./routes/auth")
-const { uploadToCloudinary, encryptBuffer, decryptBuffer,savetodb } = require("./services/cloudinaryUpload");
+const { uploadToCloudinary, encryptBuffer, decryptBuffer, savetodb } = require("./services/cloudinaryUpload");
 const { decrypt } = require("dotenv");
 const authMiddleware = require("./middleware/authmiddleware");
 
@@ -21,31 +21,38 @@ app.use(express.json());
 const upload = multer({ dest: "uploads/" });
 const uploadram = multer({ storage: multer.memoryStorage() });
 //upload , multer ka object hai aur hamari file ka object bana dega meta data ke sath aur usko uploads folder me store kar dega
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+app.use((req, res, next) => {
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  next();
+});
 app.use(cookieParser());
 
 connectDB();
 
-app.use("/auth",authRoutes)
+app.use("/auth", authRoutes)
 
-app.post("/uploadfile", authMiddleware,uploadram.single("file"), async (req, res) => {
+app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, res) => {
 
-  try{
-   
+  try {
+
     const buffer = req.file.buffer;
     const encryptedBuffer = encryptBuffer(buffer);
     const result = await uploadToCloudinary(encryptedBuffer);
     console.log(req.user.id)
 
 
-    const savedresult = await savetodb(result,req);
-   
-  
+    const savedresult = await savetodb(result, req);
+
+
     console.log(savedresult);
 
   }
-  catch(err){
-        console.error("UPLOAD ERROR:", err);
+  catch (err) {
+    console.error("UPLOAD ERROR:", err);
 
     res.status(500).json({
       success: false,
@@ -53,23 +60,23 @@ app.post("/uploadfile", authMiddleware,uploadram.single("file"), async (req, res
     });
 
   }
-  
+
 });
 
-app.get("/getfile" ,authMiddleware ,async(req,res)=>{
-  try{
+app.get("/getfile", authMiddleware, async (req, res) => {
+  try {
     const fileUrl = req.query.url;
 
-    if(!fileUrl){
+    if (!fileUrl) {
       return res.status(400).json({
-        success : false,
-        message : "File Url Reqired"
+        success: false,
+        message: "File Url Reqired"
       })
     }
 
     const response = await fetch(fileUrl)
 
-    if(!response.ok){
+    if (!response.ok) {
       throw new Error("Filed to download file from Cloudinary")
 
     }
@@ -86,12 +93,12 @@ app.get("/getfile" ,authMiddleware ,async(req,res)=>{
     res.send(originalBuffer)
 
   }
-  catch (err){
-    console.error("Download Error:",err)
+  catch (err) {
+    console.error("Download Error:", err)
 
     res.status(500).json({
-      success : false,
-      message : err.message
+      success: false,
+      message: err.message
     })
   }
 })
