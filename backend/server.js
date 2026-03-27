@@ -25,10 +25,14 @@ app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
+
+
 app.use((req, res, next) => {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
   next();
 });
+
+
 app.use(cookieParser());
 
 connectDB();

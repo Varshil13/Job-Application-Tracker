@@ -1,0 +1,249 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+	--bg: #f6f7fb;
+	--card: #ffffff;
+	--ink: #0f172a;
+	--muted: #5f6c8a;
+	--line: #e4e7f1;
+	--accent: #0ea5e9;
+	--accent-2: #0ea77c;
+	--accent-teal: #14b8a6;
+	--accent-teal-soft: rgba(20, 184, 166, 0.12);
+	--shadow: 0 20px 70px rgba(15, 23, 42, 0.12);
+	--radius: 22px;
+	--pill-radius: 999px;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	font-family: "Inter", system-ui, -apple-system, sans-serif;
+	background: radial-gradient(circle at 20% 20%, rgba(20, 184, 166, 0.14), transparent 45%),
+		radial-gradient(circle at 78% 10%, rgba(14, 165, 233, 0.12), transparent 40%),
+		var(--bg);
+	color: var(--ink);
+}
+
+.auth-shell {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 32px 18px;
+}
+
+.auth-card {
+	position: relative;
+	width: min(460px, 100%);
+	background: var(--card);
+	border-radius: var(--radius);
+	border: 1px solid var(--line);
+	box-shadow: var(--shadow), 0 0 0 1px var(--accent-teal-soft);
+	padding: 28px;
+	overflow: hidden;
+}
+
+.auth-brand {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 16px;
+}
+
+
+
+.brand-name {
+	font-weight: 700;
+	font-size: 20px;
+	letter-spacing: -0.02em;
+
+}
+
+.auth-heading {
+	margin-bottom: 18px;
+}
+
+
+.auth-heading h1 {
+	margin: 10px 0 6px;
+	font-family: "Space Grotesk", sans-serif;
+	font-size: 24px;
+}
+
+.auth-heading p {
+	margin: 0;
+	color: var(--muted);
+	line-height: 1.6;
+}
+
+.tab-switch {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 6px;
+	background: #f3f5fa;
+	border: 1px solid var(--line);
+	border-radius: 14px;
+	padding: 4px;
+	margin-bottom: 18px;
+}
+
+.tab-switch button {
+	border: none;
+	background: transparent;
+	padding: 10px 12px;
+	border-radius: 10px;
+	font-weight: 600;
+	color: var(--muted);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.tab-switch button.active {
+	background: linear-gradient(135deg, #f7fffd, #e6fffa);
+	color: var(--ink);
+	box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08), 0 0 0 1px var(--accent-teal-soft);
+}
+
+.stack {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+
+.pill-btn {
+	width: 100%;
+	border-radius: var(--pill-radius);
+	border: 1px solid rgba(15, 23, 42, 0.08);
+	padding: 12px 16px;
+	font-weight: 600;
+	font-size: 14px;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	justify-content: center;
+	cursor: pointer;
+	transition: transform 0.12s ease, box-shadow 0.18s ease, border-color 0.18s ease,
+		background 0.18s ease, color 0.18s ease;
+	background: #ffffff;
+}
+
+.pill-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+	border-color: rgba(15, 23, 42, 0.18);
+}
+
+.pill-btn:active {
+	transform: translateY(0);
+}
+
+.pill-light {
+	background: #fff;
+}
+
+.pill-solid {
+	background: #0f766e;
+	color: #f9fbfb;
+	border: 1px solid #0c5c56;
+	box-shadow: 0 8px 22px rgba(12, 92, 86, 0.32);
+}
+
+.pill-solid:hover {
+	box-shadow: 0 10px 26px rgba(12, 92, 86, 0.4);
+	background: #0d6962;
+}
+
+.google-icon {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+.divider {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: var(--muted);
+	font-size: 13px;
+}
+
+.divider span {
+	flex: 1;
+	height: 1px;
+	background: var(--line);
+}
+
+.divider em {
+	font-style: normal;
+}
+
+.auth-form {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-weight: 600;
+	color: var(--muted);
+}
+
+.field input {
+	padding: 12px 14px;
+	border-radius: 12px;
+	border: 1px solid var(--line);
+	font-size: 14px;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus {
+	outline: none;
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.14);
+}
+
+.link-btn {
+	border: none;
+	background: transparent;
+	color: var(--accent);
+	font-weight: 600;
+	align-self: flex-start;
+	cursor: pointer;
+}
+
+.muted {
+	text-align: center;
+	color: var(--muted);
+	font-size: 14px;
+}
+
+.muted button {
+	border: none;
+	background: transparent;
+	color: var(--accent);
+	font-weight: 700;
+	cursor: pointer;
+}
+
+@media (max-width: 520px) {
+	.auth-card {
+		padding: 22px;
+		border-radius: 18px;
+	}
+
+	.brand-name {
+		font-size: 16px;
+	}
+
+	.auth-heading h1 {
+		font-size: 22px;
+	}
+}

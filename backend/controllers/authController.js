@@ -34,6 +34,7 @@ async function signup(req, res) {
                 process.env.JWT_SECRET,
                 { expiresIn: "4d" }
             )
+            console.log(token)
 
             res.cookie("token", token, {
                 httpOnly: true,
@@ -159,17 +160,21 @@ async function googleLogin(req, res) {
             }
         }
         console.log(user);
+
         const jwtToken = jwt.sign(
             { id: user._id },
             process.env.JWT_SECRET,
             { expiresIn: "4d" }
         );
+        
+        console.log(jwtToken)
 
         res.cookie("token", jwtToken, {
             httpOnly: true,
             secure: false,
             sameSite: "lax"
         });
+
         res.status(200).json({
             message: "Google Login Success",
             user: {
