@@ -90,7 +90,7 @@ function App() {
 
   return (
     <>
-      <h3>Application</h3>
+      <h3 class="bg-blue-100">Application</h3>
       <input
         type="file"
         accept="application/pdf"
