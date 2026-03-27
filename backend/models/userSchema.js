@@ -3,15 +3,26 @@ const userSchema = new mongoose.Schema({
     name: String,
     email: {
         type: String,
-        unique: true
+        unique: true,
+        required: true
     },
-    password: String,
+    password: {
+        type: String,
+        required: function () {
+            return this.authProvider === "local";
+        }
+    },
     authProvider: {
         type: String,
         enum: ["local", "google"],
         default: "local"
     },
-    googleId: String,
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    profilePic: String,
     createdAt: {
         type: Date,
         default: Date.now

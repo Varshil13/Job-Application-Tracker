@@ -10,10 +10,9 @@ function encryptBuffer(fileBuffer) {
   const key = crypto
     .createHash("sha256")
     .update(process.env.ENCRYPTION_KEY)
-    .digest();        // ✅ always 32 bytes
+    .digest();
 
-  const iv = Buffer.from(process.env.ENCRYPTION_IV, "hex"); 
-  // ✅ must be 16 bytes → 32 hex chars
+  const iv = Buffer.from(process.env.ENCRYPTION_IV, "hex");
 
   const cipher = crypto.createCipheriv(
     "aes-256-cbc",
@@ -29,23 +28,23 @@ function encryptBuffer(fileBuffer) {
 
 async function uploadToCloudinary(fileBuffer) {
 
- 
 
-    const result = await new Promise((resolve, reject) => {
-  
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "documents", resource_type: "raw" },
-        (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        }
-      );
-  
-      stream.end(fileBuffer);
-  
-    });
-  
-return result;
+
+  const result = await new Promise((resolve, reject) => {
+
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: "documents", resource_type: "raw" },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+
+    stream.end(fileBuffer);
+
+  });
+
+  return result;
 
 }
 
@@ -72,20 +71,20 @@ function decryptBuffer(encryptedBuffer) {
 
 
 
-async function savetodb(result,req){
+async function savetodb(result, req) {
 
-return await Doc.create({
+  return await Doc.create({
 
-  userId: req.user.id,   // ⭐ VERY IMPORTANT
+    userId: req.user.id,   // ⭐ VERY IMPORTANT
 
-  public_id: result.public_id,
-  url: result.secure_url,
-  resource_type: result.resource_type,
+    public_id: result.public_id,
+    url: result.secure_url,
+    resource_type: result.resource_type,
 
-  mimeType: req.file.mimetype,
-  originalName: req.file.originalname,
-  size: result.bytes
+    mimeType: req.file.mimetype,
+    originalName: req.file.originalname,
+    size: result.bytes
 
-})
+  })
 }
-module.exports = { uploadToCloudinary, encryptBuffer , decryptBuffer , savetodb};
+module.exports = { uploadToCloudinary, encryptBuffer, decryptBuffer, savetodb };
