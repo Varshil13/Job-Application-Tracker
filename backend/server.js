@@ -39,18 +39,23 @@ connectDB();
 
 app.use("/auth", authRoutes)
 
-app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, res) => {
+app.post("/uploadfile",authMiddleware, uploadram.single("file"), async (req, res) => {
 
   try {
 
     const buffer = req.file.buffer;
+
     const encryptedBuffer = encryptBuffer(buffer);
     const result = await uploadToCloudinary(encryptedBuffer);
-    console.log(req.user.id)
+    
 
 
     const savedresult = await savetodb(result, req);
 
+    res.status(201).json({
+      success:true,
+      message : req.body.docName + " Saved Successfully"
+    })
 
     console.log(savedresult);
 

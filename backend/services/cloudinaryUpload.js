@@ -69,13 +69,11 @@ function decryptBuffer(encryptedBuffer) {
   ]);
 }
 
-
-
 async function savetodb(result, req) {
 
   return await Doc.create({
-
-    userId: req.user.id,   // ⭐ VERY IMPORTANT
+    docName : req.body.docName,
+     userId: req.user.id, 
 
     public_id: result.public_id,
     url: result.secure_url,
