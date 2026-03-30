@@ -3,16 +3,10 @@ import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
-  FileText,
-  Download,
-  ShieldCheck,
-  Search,
   Plus,
   X,
   UploadCloud,
-  Pencil,
   Check,
-  Trash2,
 } from "lucide-react";
 
 const DownloadLoader = ({ fileName }) => (
@@ -351,94 +345,165 @@ const DocPage = () => {
             <p className="text-slate-500 mt-4">Decrypting your vault...</p>
           </div>
         ) : documents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {documents.map((doc) => (
-              <div
-                key={doc._id}
-                className="group bg-white border border-slate-100 p-6 rounded-2xl hover:border-[#0f766e] hover:shadow-xl hover:shadow-teal-900/5 transition-all"
-              >
-                {/* ── Top row: file icon + edit/download buttons ── */}
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-3 bg-teal-50 text-[#0f766e] rounded-xl group-hover:bg-[#0f766e] group-hover:text-white transition-colors">
-                    <FileText size={24} />
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => {
-                        setEditingId(doc._id);
-                        setEditValue(doc.docName);
-                      }}
-                      className="p-2 text-slate-400 hover:text-[#0f766e] hover:bg-teal-50 rounded-full transition-colors"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleDownload(doc._id, doc.originalName)}
-                      disabled={!!downloadingDoc}
-                      className="p-2 text-slate-400 hover:text-[#0f766e] hover:bg-teal-50 rounded-full transition-colors disabled:opacity-40"
-                    >
-                      <Download size={20} />
-                    </button>
-                  </div>
-                </div>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,160px))] justify-start gap-x-5 gap-y-16">
+            {documents.map((doc) => {
+              const isPdf = doc.mimeType === "application/pdf";
+              const isDoc =
+                doc.mimeType?.includes("word") || doc.mimeType?.includes("document");
+              const isImg = doc.mimeType?.startsWith("image/");
 
-                {/* ── Inline edit vs static name ── */}
-                {editingId === doc._id ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <input
-                      autoFocus
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleRename(doc._id);
-                        if (e.key === "Escape") setEditingId(null);
-                      }}
-                      className="flex-1 text-sm font-bold text-slate-800 border-b-2 border-[#0f766e] outline-none bg-transparent py-0.5"
-                    />
-                    <button
-                      onClick={() => handleRename(doc._id)}
-                      className="text-[#0f766e] hover:opacity-70"
-                    >
-                      <Check size={16} />
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="text-slate-400 hover:opacity-70"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <h3
-                    className="font-bold text-slate-800 truncate"
-                    title={doc.docName}
+              const typeLabel = isPdf
+                ? "PDF"
+                : isDoc
+                  ? "DOC"
+                  : isImg
+                    ? "IMG"
+                    : (doc.mimeType?.split("/")[1] || "FILE").toUpperCase().slice(0, 4);
+
+              const pageGradient = isPdf
+                ? "linear-gradient(180deg, #fff7f8 0%, #ffe9ec 100%)"
+                : isDoc
+                  ? "linear-gradient(180deg, #f4f8ff 0%, #e7efff 100%)"
+                  : isImg
+                    ? "linear-gradient(180deg, #effdf5 0%, #e4f9ed 100%)"
+                    : "linear-gradient(180deg, #f8fafc 0%, #eef2f6 100%)";
+
+              const borderColor = isPdf
+                ? "#fda4af"
+                : isDoc
+                  ? "#93c5fd"
+                  : isImg
+                    ? "#86efac"
+                    : "#cbd5e1";
+
+              const badgeGradient = isPdf
+                ? "linear-gradient(180deg, #fb7185 0%, #e11d48 100%)"
+                : isDoc
+                  ? "linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)"
+                  : isImg
+                    ? "linear-gradient(180deg, #4ade80 0%, #16a34a 100%)"
+                    : "linear-gradient(180deg, #64748b 0%, #475569 100%)";
+
+              return (
+                <div
+                  key={doc._id}
+                  className="group relative flex h-[300px] w-40 flex-col items-center justify-start cursor-default select-none"
+                >
+                  <div
+                    className="relative mx-auto h-52 w-40 transition-transform duration-300 group-hover:-translate-y-1"
+                    style={{ filter: "drop-shadow(0 16px 28px rgba(2, 6, 23, 0.18))" }}
                   >
-                    {doc.docName}
-                  </h3>
-                )}
+                    <div className="absolute inset-0 overflow-hidden rounded-[22px] border border-slate-200 bg-white">
+                      <div
+                        className="absolute inset-0 rounded-[22px] border"
+                        style={{ background: pageGradient, borderColor }}
+                      />
 
-                {/* ── Bottom row: file type badge + date + trash ── */}
-                <div className="flex justify-between items-center mt-6 pt-4 border-t border-slate-50">
-                  <span className="text-[10px] font-bold px-2 py-1 bg-slate-100 text-slate-500 rounded uppercase">
-                    {doc.mimeType?.split("/")[1] || "FILE"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400">
-                      {new Date(doc.uploadedAt).toLocaleDateString()}
-                    </span>
-                    <button
-                      onClick={() => {
-                        setDeleteModal({ id: doc._id, name: doc.docName });
-                        setConfirmText("");
-                      }}
-                      className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                      <div
+                        className="absolute right-0 top-0 h-10 w-10"
+                        style={{
+                          clipPath: "polygon(0 0, 100% 100%, 0 100%)",
+                          background: borderColor,
+                          opacity: 0.9,
+                        }}
+                      />
+
+                      <div className="absolute inset-x-5 top-[54px] flex h-[58px] items-center justify-center">
+                        <p
+                          className="text-center text-[15px] font-bold leading-snug tracking-[0.01em] text-slate-800"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            fontFamily: "Sora, Poppins, 'Segoe UI', sans-serif",
+                          }}
+                          title={doc.docName}
+                        >
+                          {doc.docName}
+                        </p>
+                      </div>
+
+                      <div
+                        className="absolute bottom-0 left-0 right-0 flex h-16 items-center justify-center rounded-b-[22px] text-xl font-black tracking-[0.16em] text-white"
+                        style={{ background: badgeGradient }}
+                      >
+                        {typeLabel}
+                      </div>
+
+                      <div className="absolute inset-x-0 bottom-[74px] flex justify-center">
+                        <span
+                          className="text-[12px] font-semibold tracking-[0.02em] text-slate-700"
+                          style={{
+                            fontFamily: "Sora, Poppins, 'Segoe UI', sans-serif",
+                            textShadow: "0 1px 1px rgba(255,255,255,0.55)",
+                          }}
+                        >
+                          {new Date(doc.uploadedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
                   </div>
+
+                  {editingId !== doc._id && (
+                    <div className="pointer-events-none absolute left-1/2 top-[214px] z-20 w-40 -translate-x-1/2 translate-y-1 origin-top rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-900/10 opacity-0 scale-y-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:scale-y-100 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:scale-y-100 group-focus-within:opacity-100">
+                      <button
+                        onClick={() => {
+                          setEditingId(doc._id);
+                          setEditValue(doc.docName);
+                        }}
+                        className="block w-full border-b border-slate-100 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                      >
+                        Rename
+                      </button>
+                      <button
+                        onClick={() => handleDownload(doc._id, doc.originalName)}
+                        disabled={!!downloadingDoc}
+                        className="block w-full border-b border-slate-100 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-40"
+                      >
+                        Download
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteModal({ id: doc._id, name: doc.docName });
+                          setConfirmText("");
+                        }}
+                        className="block w-full px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  )}
+
+                  {editingId === doc._id ? (
+                    <div className="mt-3 flex w-40 items-center gap-1.5">
+                      <input
+                        autoFocus
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleRename(doc._id);
+                          if (e.key === "Escape") setEditingId(null);
+                        }}
+                        className="flex-1 rounded-lg border border-[#0f766e]/45 bg-white px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition-all focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20"
+                      />
+                      <button
+                        onClick={() => handleRename(doc._id)}
+                        className="text-[#0f766e] hover:text-[#0d635d]"
+                      >
+                        <Check size={14} />
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : null}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-20 border-2 border-dashed border-slate-100 rounded-3xl">
