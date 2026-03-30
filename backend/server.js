@@ -12,6 +12,7 @@ const connectDB = require("./config/db");
 // const User = require("./models/test");
 
 const authRoutes = require("./routes/auth")
+const docRoutes = require("./routes/doc")
 const { uploadToCloudinary, encryptBuffer, decryptBuffer, savetodb } = require("./services/cloudinaryUpload");
 const { decrypt } = require("dotenv");
 const authMiddleware = require("./middleware/authmiddleware");
@@ -38,8 +39,8 @@ app.use(cookieParser());
 connectDB();
 
 app.use("/auth", authRoutes)
-
-app.post("/uploadfile",authMiddleware, uploadram.single("file"), async (req, res) => {
+app.use("/docs", docRoutes);
+app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, res) => {
 
   try {
 
@@ -47,14 +48,14 @@ app.post("/uploadfile",authMiddleware, uploadram.single("file"), async (req, res
 
     const encryptedBuffer = encryptBuffer(buffer);
     const result = await uploadToCloudinary(encryptedBuffer);
-    
+
 
 
     const savedresult = await savetodb(result, req);
 
     res.status(201).json({
-      success:true,
-      message : req.body.docName + " Saved Successfully"
+      success: true,
+      message: req.body.docName + " Saved Successfully"
     })
 
     console.log(savedresult);
