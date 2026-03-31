@@ -373,15 +373,15 @@ const DocPage = () => {
                 : isDoc
                   ? "#93c5fd"
                   : isImg
-                    ? "#86efac"
+                    ? "#58b97c"
                     : "#cbd5e1";
 
               const badgeGradient = isPdf
-                ? "linear-gradient(180deg, #fb7185 0%, #e11d48 100%)"
+                ? "linear-gradient(180deg, rgb(239, 76, 92) 0%, rgb(152, 68, 68) 100%)"
                 : isDoc
-                  ? "linear-gradient(180deg, #60a5fa 0%, #2563eb 100%)"
+                  ? "linear-gradient(180deg, rgba(81, 116, 177) 0%, rgba(59, 87, 121) 100%)"
                   : isImg
-                    ? "linear-gradient(180deg, #4ade80 0%, #16a34a 100%)"
+                    ? "linear-gradient(180deg, rgba(76, 120, 87) 0%, rgba(57, 93, 61) 100%)"
                     : "linear-gradient(180deg, #64748b 0%, #475569 100%)";
 
               return (

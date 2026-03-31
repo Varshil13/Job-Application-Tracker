@@ -2,6 +2,9 @@ const multer = require("multer")
 
 const storage = multer.memoryStorage();
 
+// const diskStorage = multer.diskStorage()
+// NJs recommendation
+
 
 const upload = multer({
     storage,
