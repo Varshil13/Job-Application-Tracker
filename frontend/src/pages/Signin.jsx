@@ -30,8 +30,8 @@ export default function Signin({ onSwitchToSignup }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(form),
-          credentials: "include"
-        }
+          credentials: "include",
+        },
       );
 
       const data = await res.json();
@@ -55,7 +55,7 @@ export default function Signin({ onSwitchToSignup }) {
         onSuccess={async (res) => {
           const token = res.credential;
 
-          await fetch("/api/auth/google", {
+          const response = await fetch("/api/auth/google", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -63,6 +63,14 @@ export default function Signin({ onSwitchToSignup }) {
             body: JSON.stringify({ token }),
             credentials: "include",
           });
+
+          const data = await response.json();
+
+          if (data.success) {
+            navigate("/applications"); // 👈 redirect here
+          } else {
+            console.log("Login failed");
+          }
         }}
         onError={() => console.log("Login Failed")}
       />
