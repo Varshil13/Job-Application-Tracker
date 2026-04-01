@@ -28,8 +28,6 @@ function encryptBuffer(fileBuffer) {
 
 async function uploadToCloudinary(fileBuffer) {
 
-
-
   const result = await new Promise((resolve, reject) => {
 
     const stream = cloudinary.uploader.upload_stream(

@@ -5,22 +5,32 @@ const cookieParser = require("cookie-parser")
 const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume } = require("./services/geminiExtractor");
-const { connect } = require("mongoose");
+
+const fs = require("fs")
 
 
 const connectDB = require("./config/db");
-// const User = require("./models/test");
+
 
 const authRoutes = require("./routes/auth")
 const docRoutes = require("./routes/doc")
+const applicationRoutes = require("./routes/application")
 const { uploadToCloudinary, encryptBuffer, decryptBuffer, savetodb } = require("./services/cloudinaryUpload");
-const { decrypt } = require("dotenv");
+
 const authMiddleware = require("./middleware/authmiddleware");
 
 const app = express();
 app.use(express.json());
-const upload = multer({ dest: "uploads/" });
+
+
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+
 const uploadram = multer({ storage: multer.memoryStorage() });
+
 //upload , multer ka object hai aur hamari file ka object bana dega meta data ke sath aur usko uploads folder me store kar dega
 app.use(cors({
   origin: "http://localhost:5173",
@@ -38,9 +48,10 @@ app.use(cookieParser());
 
 connectDB();
 
-app.use("/auth", authRoutes)
-app.use("/docs", docRoutes);
-// app.use("/apps",appRoutes);
+app.use("/auth", authRoutes);
+app.use("/docs", authMiddleware, docRoutes);
+
+app.use("/applications", authMiddleware, applicationRoutes)
 app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, res) => {
 
   try {
@@ -74,6 +85,9 @@ app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, re
 
 });
 
+
+
+
 app.get("/getfile", authMiddleware, async (req, res) => {
   try {
     const fileUrl = req.query.url;
@@ -93,6 +107,7 @@ app.get("/getfile", authMiddleware, async (req, res) => {
     }
 
     const arrayBuffer = await response.arrayBuffer();
+
     const encryptedBuffer = Buffer.from(arrayBuffer)
 
     const originalBuffer = decryptBuffer(encryptedBuffer)
@@ -114,19 +129,10 @@ app.get("/getfile", authMiddleware, async (req, res) => {
   }
 })
 
-// app.get("/insert", async (req, res) => {
-//   const newUser = new User({
-//     username: "varshil",
-//     password: "1234",
-//   });
 
-//   await newUser.save();
-
-//   res.send("User Inserted");
-// });
 
 app.post("/upload", upload.single("pdf"), async (req, res) => {
-  const filePath = req.file.path;
+  const filePath = req.file?.path;
 
   try {
     console.log("Extracting information from the job posting...");
@@ -138,9 +144,18 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
       error: "Extraction Failed",
     });
   }
+  finally {
+    if (filePath) {
+      fs.unlink(filePath, (err) => {        // ✅ deletes file after job is done
+        if (err) console.error("Failed to delete file:", err);
+      });
+    }
+  }
 });
+
+
 app.post("/resume/parse", upload.single("pdf"), async (req, res) => {
-  const filePath = req.file.path;
+  const filePath = req.file?.path;
   try {
     const result = await resumeParse(filePath);
     console.log("Extracting information from the resume...");
@@ -151,7 +166,17 @@ app.post("/resume/parse", upload.single("pdf"), async (req, res) => {
       error: "Extraction Failed",
     });
   }
+  finally {
+    if (filePath) {
+      fs.unlink(filePath, (err) => {        // ✅ deletes file after job is done
+        if (err) console.error("Failed to delete file:", err);
+      });
+    }
+  }
 });
+
+
+
 app.post("/match", async (req, res) => {
   try {
     const { resumeJSON, jobJSON } = req.body;

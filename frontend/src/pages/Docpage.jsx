@@ -7,7 +7,10 @@ import {
   X,
   UploadCloud,
   Check,
+  BriefcaseBusiness,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import WorkspaceLayout from "../components/WorkspaceLayout";
 
 const DownloadLoader = ({ fileName }) => (
   <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
@@ -167,6 +170,7 @@ const DownloadLoader = ({ fileName }) => (
 );
 
 const DocPage = () => {
+  const { setAuthUser } = useAuth();
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -178,6 +182,7 @@ const DocPage = () => {
   const [editValue, setEditValue] = useState("");
   const [deleteModal, setDeleteModal] = useState(null);
   const [confirmText, setConfirmText] = useState("");
+  const [activeSection, setActiveSection] = useState("vault");
 
   const fetchDocs = async () => {
     try {
@@ -313,15 +318,52 @@ const DocPage = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      setAuthUser(null);
+      localStorage.removeItem("chat-user");
+      window.location.href = "/auth";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-white text-slate-900 p-8">
+    <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-6 lg:p-8">
       {/* Toast — top center */}
       <ToastContainer position="top-center" theme="light" />
 
       {/* Download overlay */}
       {downloadingDoc && <DownloadLoader fileName={downloadingDoc.name} />}
 
-      <header className="max-w-6xl mx-auto mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <WorkspaceLayout
+        activeSection={activeSection}
+        setActiveSection={setActiveSection}
+        onLogout={handleLogout}
+        applicationsPanel={(
+          <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <h1 className="text-3xl font-bold text-[#0f766e]">Applications</h1>
+            <p className="mt-2 text-slate-500">
+              Track all your submitted applications here.
+            </p>
+
+            <div className="mt-8 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-10 text-center">
+              <BriefcaseBusiness className="mx-auto mb-3 text-slate-300" size={42} />
+              <p className="text-lg font-semibold text-slate-600">No applications yet</p>
+              <p className="mt-1 text-sm text-slate-400">
+                Hook your application route/API here when ready.
+              </p>
+            </div>
+          </section>
+        )}
+      >
+
+      <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-4xl font-bold text-[#0f766e]">Secure Vault</h1>
           <p className="text-slate-500 mt-2">
@@ -338,7 +380,7 @@ const DocPage = () => {
         </button>
       </header>
 
-      <main className="max-w-6xl mx-auto">
+      <main>
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0f766e]"></div>
@@ -515,6 +557,8 @@ const DocPage = () => {
           </div>
         )}
       </main>
+
+      </WorkspaceLayout>
 
       {/* ── Delete modal — outside the map ── */}
       {deleteModal && (

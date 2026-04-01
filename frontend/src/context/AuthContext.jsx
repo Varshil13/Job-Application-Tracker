@@ -14,7 +14,7 @@ useEffect(() => {
   const fetchUser = async () => {
     try {
         
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/getme`, {
+      const res = await fetch(`api/auth/getme`, {
         credentials: "include",
       });
 
