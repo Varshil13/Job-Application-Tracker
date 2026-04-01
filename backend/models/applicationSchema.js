@@ -51,4 +51,4 @@ const applicationSchema = new mongoose.Schema({
         degree: String,
         experience: String
     }
-});
+}, { timestamps: true });

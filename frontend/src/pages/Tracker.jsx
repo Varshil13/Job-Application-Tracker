@@ -285,6 +285,7 @@ export default function Tracker() {
   const [loading, setLoading] = useState(true);
   const { authUser } = useAuth();
   useEffect(() => {
+    //get all applications for the user
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/getall`, {
       credentials: "include",
     })
@@ -294,14 +295,17 @@ export default function Tracker() {
           id: app._id,
           role: app.role,
           company: app.company,
-          location: app.location ?? "Not specified",
+          location: app.location || "Not specified",
+
           status: mapStatus(app.status),
+
           pending: ["saved", "applied"].includes(app.status) ? "yes" : "no",
-          saved_at: app.savedDate || null,
-          applied_at: app.appliedDate || null,
-          screen_at: app.screenDate || null,
-          interview_at: app.interviewDate || null,
-          offer_at: app.offerDate || null,
+
+          saved_at: app.savedDate,
+          applied_at: app.appliedDate,
+          screen_at: app.screenDate,
+          interview_at: app.interviewDate,
+          offer_at: app.offerDate,
         }));
         setApplications(mapped);
       })
@@ -321,24 +325,38 @@ export default function Tracker() {
   };
 
   const handleStatusChange = (id, newStatus) => {
+    const now = new Date();
+
     setApplications((prev) =>
-      prev.map((app) =>
-        app.id === id
-          ? {
-              ...app,
-              status: newStatus,
-              pending: ["Saved", "Applied"].includes(newStatus) ? "yes" : "no",
-            }
-          : app,
-      ),
+      prev.map((app) => {
+        if (app.id !== id) return app;
+
+        const updated = {
+          ...app,
+          status: newStatus,
+          pending: ["Saved", "Applied"].includes(newStatus) ? "yes" : "no",
+        };
+
+        // ✅ update timeline instantly (optimistic UI)
+        if (newStatus === "Applied") updated.applied_at = now;
+        if (newStatus === "Screen") updated.screen_at = now;
+        if (newStatus === "Interview") updated.interview_at = now;
+        if (newStatus === "Offer") updated.offer_at = now;
+
+        return updated;
+      }),
     );
+
     fetch(
+      //update status of application
       `${import.meta.env.VITE_BACKEND_URL}/applications/modify/${id}/status`,
       {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: REVERSE_STATUS_MAP[newStatus] }),
+        body: JSON.stringify({
+          status: REVERSE_STATUS_MAP[newStatus],
+        }),
       },
     ).catch(console.error);
   };

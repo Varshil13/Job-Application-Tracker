@@ -5,7 +5,7 @@ const CORE_STAGES = [
   { key: "saved", label: "Saved" },
   { key: "applied", label: "Applied" },
   { key: "screen", label: "Screen" },
-  { key: "interview", label: "Interviewing" },
+  { key: "interview", label: "Interview" },
   { key: "offer", label: "Offer" },
 ];
 
@@ -183,12 +183,12 @@ function Overview({ job }) {
   );
 }
 
-// ─── Documents tab ────────────────────────────────────────────────────────────
 function Documents({ jobId }) {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    //documents required for that job
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/documents`)
       .then((r) => r.json())
       .then((d) => setDocs(d.documents || []))
@@ -266,12 +266,12 @@ function Documents({ jobId }) {
   );
 }
 
-// ─── Resume Match tab ─────────────────────────────────────────────────────────
 function ResumeMatch({ jobId }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    //run resume match for that jobid
     fetch(`${import.meta.env.VITE_BACKEND_URL}/resume/match/${jobId}`)
       .then((r) => r.json())
       .then((d) => setResult(d.matchResult ?? d))
@@ -393,6 +393,7 @@ function StatusTracker({ jobId, onStatusChange }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    // get status of that application
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`)
       .then((r) => r.json())
       .then((d) => {
@@ -421,6 +422,7 @@ function StatusTracker({ jobId, onStatusChange }) {
     setSaving(true);
     const body = { status };
     if (extraDateField) body[extraDateField] = extraDateValue;
+    //modify the status of application
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -642,8 +644,8 @@ export default function JobDetailPage() {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [reminderSaving, setReminderSaving] = useState(false);
 
-  // ── Fetch job details ──────────────────────────────────────────────────────
   useEffect(() => {
+    // get application detail (from parsed body)
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}`)
       .then((r) => r.json())
       .then((d) => setJob(d.application ?? d))
@@ -651,8 +653,8 @@ export default function JobDetailPage() {
       .finally(() => setJobLoading(false));
   }, [jobId]);
 
-  // ── Fetch initial status ───────────────────────────────────────────────────
   useEffect(() => {
+    //made earlier
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`)
       .then((r) => r.json())
       .then((d) => setCurrentStatus(d.status?.toLowerCase() ?? "saved"))
@@ -661,6 +663,7 @@ export default function JobDetailPage() {
 
   // ── Fetch reminder state ───────────────────────────────────────────────────
   useEffect(() => {
+    //for reminder
     fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`)
       .then((r) => r.json())
       .then((d) => setReminderEnabled(d.enabled ?? false))
@@ -671,6 +674,7 @@ export default function JobDetailPage() {
   const handleReminderToggle = (newState) => {
     setReminderEnabled(newState);
     setReminderSaving(true);
+    // to modify status of reminder
     fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -683,6 +687,7 @@ export default function JobDetailPage() {
   const isSavedOnly = currentStatus === "saved";
 
   const handleDraft = () => {
+    //earlier
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -693,12 +698,14 @@ export default function JobDetailPage() {
   };
 
   const handleArchive = () => {
+    //change draft to apply or apply to draft
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/archive`, {
       method: "PATCH",
     }).catch(console.error);
   };
 
   const handleDelete = () => {
+    // delete application
     fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}`, {
       method: "DELETE",
     })
