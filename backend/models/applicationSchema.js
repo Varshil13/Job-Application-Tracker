@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const applicationSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -7,20 +6,37 @@ const applicationSchema = new mongoose.Schema({
 
     company: String,
     role: String,
-    deadline: Date,
+    location: String,
 
+    deadline: Date,
     applicationLink: String,
 
-    appliedDate: {
+    savedDate: {
         type: Date,
         default: Date.now
     },
 
+    appliedDate: Date,
+    screenDate: Date,
+    interviewDate: Date,
+    offerDate: Date,
+
     status: {
         type: String,
-        enum: ["applied", "interview", "rejected", "offer"],
-        default: "applied"
+        enum: [
+            "saved",
+            "applied",
+            "screen",
+            "interview",
+            "rejected",
+            "offer",
+            "withdrawn",
+            "ghosted",
+            "accepted"
+        ],
+        default: "saved"
     },
+
     matchResult: {
         matchScore: Number,
         eligible: Boolean,
@@ -30,11 +46,9 @@ const applicationSchema = new mongoose.Schema({
         suggestions: [String]
     },
 
-    // at the time of applying , tumhari ye halat thi , ab ho sakta hai better ya worse ho
     eligibilitySnapshot: {
         skills: [String],
         degree: String,
         experience: String
     }
 });
-module.exports = mongoose.model("Application", applicationSchema);

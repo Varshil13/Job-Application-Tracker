@@ -40,6 +40,7 @@ connectDB();
 
 app.use("/auth", authRoutes)
 app.use("/docs", docRoutes);
+// app.use("/apps",appRoutes);
 app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, res) => {
 
   try {

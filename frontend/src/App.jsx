@@ -1,8 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 import { useAuth } from "./context/AuthContext";
 import AuthPage from "./AuthPage";
 import DocPage from "./pages/Docpage";
+import Tracker from "./pages/Tracker";
 
 function App() {
   const { authUser, loading } = useAuth();
@@ -12,14 +13,14 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={authUser ? <DocPage /> : <Navigate to={"/auth"} />}
+          element={authUser ? <Tracker /> : <Navigate to={"/auth"} />}
         />
         <Route
           path="/auth"
           element={authUser ? <Navigate to="/" /> : <AuthPage />}
         />
       </Routes>
-      <Toaster />
+      <Toaster position="top-center" reverseOrder={false} />
     </div>
   );
 }
