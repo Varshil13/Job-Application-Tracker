@@ -10,28 +10,33 @@ export const AuthContextProvider = ({ children }) => {
   const [authUser, setAuthUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-  const fetchUser = async () => {
-    try {
-        
-      const res = await fetch(`api/auth/getme`, {
-        credentials: "include",
-      });
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`/api/auth/getme`, {
+          credentials: "include",
+        });
 
-      const data = await res.json();
-      setAuthUser(data.user);
-    } catch (err) {
-      setAuthUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchUser();
-}, []);
+        if (!res.ok) {
+          setAuthUser(null);
+          return;
+        }
+
+        const data = await res.json();
+        setAuthUser(data.user ?? null);
+      } catch (err) {
+        setAuthUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
 
   return (
-    <AuthContext.Provider value={{ authUser, setAuthUser }}>
+    <AuthContext.Provider value={{ authUser, setAuthUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

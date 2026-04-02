@@ -1,3 +1,5 @@
+const mongoose = require("mongoose")
+
 const applicationSchema = new mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -7,6 +9,12 @@ const applicationSchema = new mongoose.Schema({
     company: String,
     role: String,
     location: String,
+    salary: String,
+    stipend: String,
+    jobType: String,
+    description: String,
+    portalLink: String,
+    
 
     deadline: Date,
     applicationLink: String,
@@ -37,6 +45,17 @@ const applicationSchema = new mongoose.Schema({
         default: "saved"
     },
 
+    smartReminderEnabled: {
+        type: Boolean,
+        default: false
+    },
+
+    reminderLogs: {
+        deadlineFiveDaysSentAt: Date,
+        deadlineOneDaySentAt: Date,
+        appliedOneDaySentAt: Date,
+    },
+
     matchResult: {
         matchScore: Number,
         eligible: Boolean,
@@ -48,7 +67,13 @@ const applicationSchema = new mongoose.Schema({
 
     eligibilitySnapshot: {
         skills: [String],
+        branches: [String],
         degree: String,
-        experience: String
+        experience: String,
+        cgpa: Number,
+        minGPA: Number,
+        year: Number
     }
 }, { timestamps: true });
+
+module.exports = mongoose.model("Application", applicationSchema)

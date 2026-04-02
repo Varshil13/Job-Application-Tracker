@@ -41,21 +41,37 @@ RETURN ONLY VALID JSON (no markdown, no explanation):
 
 }
 function buildResumePrompt(resume = "") {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+
   return `Extract structured information from this resume.
   Resume : ${resume}
+
+  Current year for calculation: ${currentYear}
+
   Return JSON:
     {
       "skills": [],
-        "projects": [],
-          "experience": [],
-            "education": []
+      "projects": [],
+      "experience": [],
+      "education": [],
+      "batchStartYear": number or null,
+      "batchEndYear": number or null,
+      "currentYearOfStudy": number or null,
+      "educationSummary": "short line"
     }
 
-    Rules:
-    - skills should be lowercase
-      - avoid duplicates
-        - be concise
-          `;
+  Rules:
+  - skills should be lowercase
+  - avoid duplicates
+  - be concise
+  - If resume has a batch like 2023-2027, extract start/end years as numbers.
+  - Compute currentYearOfStudy with formula:
+    currentYearOfStudy = (${currentYear} - batchStartYear)
+  - Clamp currentYearOfStudy to range [1, (batchEndYear - batchStartYear + 1)].
+  - Example: batch 2023-2027 and current year ${currentYear} => currentYearOfStudy should be 3.
+  - If batch years are missing, set batchStartYear, batchEndYear, currentYearOfStudy to null.
+  - Return valid JSON only.`;
 }
 
 
@@ -135,6 +151,9 @@ async function extractFromResume(data) {
 }
 
 async function analyseMatchResume(resumeJSON, jobJSON) {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+
   const prompt = `
 You are an AI system that evaluates how well a candidate matches a job.
 
@@ -147,11 +166,21 @@ ${JSON.stringify(jobJSON)}
 TASK:
 Compare the resume with the job requirements and return a structured evaluation.
 
+YEAR-OF-STUDY RULES (CRITICAL):
+- Current year is ${currentYear}.
+- If resume has batchStartYear and batchEndYear, compute:
+  computedYearOfStudy = ${currentYear} - batchStartYear
+- Clamp computedYearOfStudy between 1 and courseDuration (batchEndYear - batchStartYear + 1).
+- Use computedYearOfStudy when checking job eligibility year requirement.
+- If job asks for 3rd/4th year and computedYearOfStudy is 3 or 4, treat year eligibility as satisfied.
+- If year requirement is unclear or missing, do not reject only on year criteria.
+
 RULES:
 - Focus mainly on skills, experience, and degree
 - Be strict but fair
 - skills comparison is most important
 - consider partial matches
+- If matchScore >= 70, eligible should usually be true unless a hard requirement is clearly not met
 - return only JSON (no explanation)
 
 OUTPUT FORMAT:

@@ -4,7 +4,7 @@ import Signin from "./pages/Signin";
 import Signup from "./pages/Signup";
 
 export default function AuthPage({
-  onGoogleAuth = (token) => console.log(token),
+  onGoogleAuth = () => {},
 }) {
   const [activeTab, setActiveTab] = useState("signin");
 

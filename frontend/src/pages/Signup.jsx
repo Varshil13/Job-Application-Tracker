@@ -98,7 +98,7 @@ export default function Signup({ onSwitchToSignin }) {
             credentials: "include",
           });
         }}
-        onError={() => console.log("Login Failed")}
+        onError={() => {}}
       />
 
       <div className="flex items-center gap-2">

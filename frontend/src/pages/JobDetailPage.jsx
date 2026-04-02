@@ -103,7 +103,7 @@ function Overview({ job }) {
     <div className="space-y-6">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
         <InfoRow label="Location" value={job.location} />
-        <InfoRow label="Salary" value={job.salary} />
+        <InfoRow label="Stipend/Salary" value={job.salary} />
         <InfoRow
           label="Job Type"
           value={
@@ -112,7 +112,10 @@ function Overview({ job }) {
               : null
           }
         />
-        <InfoRow label="Deadline" value={job.applicationDeadline} />
+        <InfoRow
+          label="Deadline"
+          value={formatDate(job.applicationDeadline) || job.applicationDeadline}
+        />
       </div>
 
       {job.portalLink && (
@@ -146,7 +149,9 @@ function Overview({ job }) {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {el.degree && <InfoRow label="Degree" value={el.degree} />}
-          {el.minGPA && <InfoRow label="Min GPA" value={el.minGPA} />}
+          {(el.minGPA || el.cgpa) && (
+            <InfoRow label="GPA/CGPA" value={el.minGPA ?? el.cgpa} />
+          )}
           {el.year && <InfoRow label="Year" value={el.year} />}
           {el.experience && (
             <InfoRow label="Experience" value={el.experience} />
@@ -188,12 +193,26 @@ function Documents({ jobId }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    //documents required for that job
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/documents`)
-      .then((r) => r.json())
-      .then((d) => setDocs(d.documents || []))
-      .catch(() => setDocs([]))
-      .finally(() => setLoading(false));
+    const fetchDocs = async () => {
+      try {
+        //documents required for that job
+        const r = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/applications/getjobdetails/${jobId}`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!r.ok) throw new Error("Failed to fetch documents");
+        const d = await r.json();
+        setDocs(d.documents || []);
+      } catch {
+        setDocs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocs();
   }, [jobId]);
 
   if (loading)
@@ -266,18 +285,38 @@ function Documents({ jobId }) {
   );
 }
 
-function ResumeMatch({ jobId }) {
+function ResumeMatch({ jobId, initialResult }) {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    //run resume match for that jobid
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/resume/match/${jobId}`)
-      .then((r) => r.json())
-      .then((d) => setResult(d.matchResult ?? d))
-      .catch(() => setResult(null))
-      .finally(() => setLoading(false));
-  }, [jobId]);
+    if (initialResult) {
+      setResult(initialResult);
+      setLoading(false);
+      return;
+    }
+
+    const fetchMatch = async () => {
+      try {
+        //run resume match for that jobid
+        const r = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/resume/match/${jobId}`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!r.ok) throw new Error("Failed to fetch resume match");
+        const d = await r.json();
+        setResult(d.matchResult ?? d);
+      } catch {
+        setResult(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatch();
+  }, [jobId, initialResult]);
 
   if (loading)
     return (
@@ -298,7 +337,7 @@ function ResumeMatch({ jobId }) {
       </div>
     );
 
-  const score = result.matchScore ?? 0;
+  const score = result.matchScore ?? result.score ?? 0;
   const color =
     score >= 75
       ? "text-teal-600"
@@ -393,10 +432,18 @@ function StatusTracker({ jobId, onStatusChange }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // get status of that application
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`)
-      .then((r) => r.json())
-      .then((d) => {
+    const fetchStatus = async () => {
+      try {
+        // get status of that application
+        const r = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!r.ok) throw new Error("Failed to fetch status");
+        const d = await r.json();
+
         const s = d.status?.toLowerCase() ?? "saved";
         if (TERMINAL_STATUSES.includes(s)) {
           setTerminalStatus(s);
@@ -414,22 +461,30 @@ function StatusTracker({ jobId, onStatusChange }) {
           if (val) mapped[key] = val;
         });
         setDates(mapped);
-      })
-      .catch(() => {});
+      } catch {
+      }
+    };
+
+    fetchStatus();
   }, [jobId]);
 
-  const patch = (status, extraDateField, extraDateValue) => {
+  const patch = async (status, extraDateField, extraDateValue) => {
     setSaving(true);
     const body = { status };
     if (extraDateField) body[extraDateField] = extraDateValue;
-    //modify the status of application
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    })
-      .catch(console.error)
-      .finally(() => setSaving(false));
+    try {
+      //modify the status of application
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateStage = (stageKey) => {
@@ -645,72 +700,134 @@ export default function JobDetailPage() {
   const [reminderSaving, setReminderSaving] = useState(false);
 
   useEffect(() => {
-    // get application detail (from parsed body)
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}`)
-      .then((r) => r.json())
-      .then((d) => setJob(d.application ?? d))
-      .catch(() => setJob(null))
-      .finally(() => setJobLoading(false));
+    const fetchJobDetails = async () => {
+      try {
+        // get application detail (from parsed body)
+        const r = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/applications/getjobdetails/${jobId}`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!r.ok) throw new Error("Failed to fetch job details");
+        const d = await r.json();
+        const app = d.application ?? d;
+        setJob({
+          ...app,
+          position: app.position ?? app.role,
+          salary: app.salary ?? app.stipend ?? null,
+          portalLink: app.portalLink ?? app.link,
+          applicationDeadline: app.applicationDeadline ?? app.deadline,
+          eligibility: app.eligibility ?? app.eligibilitySnapshot,
+        });
+        setCurrentStatus((app.status ?? "saved").toLowerCase());
+      } catch (err) {
+        console.error("Job fetch failed:", err);
+        setJob(null);
+      } finally {
+        setJobLoading(false);
+      }
+    };
+
+    fetchJobDetails();
   }, [jobId]);
 
   useEffect(() => {
-    //made earlier
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`)
-      .then((r) => r.json())
-      .then((d) => setCurrentStatus(d.status?.toLowerCase() ?? "saved"))
-      .catch(() => {});
+    const fetchCurrentStatus = async () => {
+      try {
+        //made earlier
+        const r = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!r.ok) throw new Error("Failed to fetch current status");
+        const d = await r.json();
+        setCurrentStatus(d.status?.toLowerCase() ?? "saved");
+      } catch {
+      }
+    };
+
+    fetchCurrentStatus();
   }, [jobId]);
 
   // ── Fetch reminder state ───────────────────────────────────────────────────
   useEffect(() => {
-    //for reminder
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`)
-      .then((r) => r.json())
-      .then((d) => setReminderEnabled(d.enabled ?? false))
-      .catch(() => {});
+    const fetchReminderState = async () => {
+      try {
+        //for reminder
+        const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`, {
+          credentials: "include",
+        });
+        const d = await r.json();
+        setReminderEnabled(d.enabled ?? false);
+      } catch {
+      }
+    };
+
+    fetchReminderState();
   }, [jobId]);
 
   // ── Toggle reminder ────────────────────────────────────────────────────────
-  const handleReminderToggle = (newState) => {
+  const handleReminderToggle = async (newState) => {
     setReminderEnabled(newState);
     setReminderSaving(true);
-    // to modify status of reminder
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled: newState }),
-    })
-      .catch(console.error)
-      .finally(() => setReminderSaving(false));
+    try {
+      // to modify status of reminder
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: newState }),
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReminderSaving(false);
+    }
   };
 
   const isSavedOnly = currentStatus === "saved";
 
-  const handleDraft = () => {
-    //earlier
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "applied", appliedDate: todayISO() }),
-    })
-      .then(() => setCurrentStatus("applied"))
-      .catch(console.error);
+  const handleDraft = async () => {
+    try {
+      //earlier
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "applied", appliedDate: todayISO() }),
+      });
+      setCurrentStatus("applied");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleArchive = () => {
-    //change draft to apply or apply to draft
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/archive`, {
-      method: "PATCH",
-    }).catch(console.error);
+  const handleArchive = async () => {
+    try {
+      //change draft to apply or apply to draft
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/archive`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleDelete = () => {
-    // delete application
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}`, {
-      method: "DELETE",
-    })
-      .then(() => navigate(-1))
-      .catch(console.error);
+  const handleDelete = async () => {
+    try {
+      // delete application
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      navigate(-1);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const TABS = [
@@ -729,25 +846,6 @@ export default function JobDetailPage() {
             strokeLinejoin="round"
             strokeWidth={2}
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: "documents",
-      label: "Documents",
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
           />
         </svg>
       ),
@@ -928,15 +1026,15 @@ export default function JobDetailPage() {
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
               <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">
                 {activeTab === "overview" && "Job Posting"}
-                {activeTab === "documents" && "Attached Documents"}
                 {activeTab === "resume" && "Resume Match Analysis"}
               </h2>
 
               {activeTab === "overview" && (
                 <Overview job={jobLoading ? null : job} />
               )}
-              {activeTab === "documents" && <Documents jobId={jobId} />}
-              {activeTab === "resume" && <ResumeMatch jobId={jobId} />}
+              {activeTab === "resume" && (
+                <ResumeMatch jobId={jobId} initialResult={job?.matchResult} />
+              )}
             </div>
           </div>
 

@@ -11,7 +11,7 @@ async function connectDB() {
 
     }
     catch(err) {
-        console.log(err)
+        console.error(err)
         process.exit(1)
     }
     

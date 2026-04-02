@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 const TIMELINE_STEPS = ["Saved", "Applied", "Screen", "Interview", "Offer"];
 
 const stepIndex = (status) => {
@@ -29,7 +30,11 @@ function StatusDropdown({ current, onChange, appId }) {
   const terminal = ["Withdrawn", "Ghosted", "Rejected", "Accepted"];
 
   return (
-    <div ref={ref} className="relative">
+    <div
+      ref={ref}
+      className="relative"
+      onClick={(e) => e.stopPropagation()}
+    >
       <button
         onClick={() => setOpen((p) => !p)}
         className="flex items-center justify-between w-36 px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors"
@@ -170,7 +175,7 @@ function Timeline({ app }) {
   );
 }
 
-function AppCard({ app, onStatusChange }) {
+function AppCard({ app, onStatusChange, onOpenDetails }) {
   const [flyData, setFlyData] = useState(null);
 
   const circleLeft = (idx) => 292 + idx * 64;
@@ -188,7 +193,10 @@ function AppCard({ app, onStatusChange }) {
   };
 
   return (
-    <div className="bg-white border border-slate-100 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-teal-100 transition-all duration-200 relative">
+    <div
+      onClick={() => onOpenDetails(app.id)}
+      className="bg-white border border-slate-100 rounded-2xl px-6 py-4 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-teal-100 transition-all duration-200 relative cursor-pointer"
+    >
       {flyData && (
         <>
           <style>{`
@@ -284,13 +292,23 @@ export default function Tracker() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const { authUser } = useAuth();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    //get all applications for the user
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/getall`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchApplications = async () => {
+      try {
+        //get all applications for the user
+        const res = await fetch(`api/applications/getallapplications`, {
+          credentials: "include",
+        });
+        const result = await res.json();
+        const data  = result.data
+
+        if (!Array.isArray(data)) {
+          setApplications([]);
+          return;
+        }
+
         const mapped = data.map((app) => ({
           id: app._id,
           role: app.role,
@@ -299,7 +317,7 @@ export default function Tracker() {
 
           status: mapStatus(app.status),
 
-          pending: ["saved", "applied"].includes(app.status) ? "yes" : "no",
+          pending: app.status === "saved" ? "yes" : "no",
 
           saved_at: app.savedDate,
           applied_at: app.appliedDate,
@@ -308,9 +326,15 @@ export default function Tracker() {
           offer_at: app.offerDate,
         }));
         setApplications(mapped);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      } catch (err) {
+        console.error(err);
+        setApplications([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
   }, []);
   const REVERSE_STATUS_MAP = {
     Saved: "saved",
@@ -324,7 +348,7 @@ export default function Tracker() {
     Accepted: "accepted",
   };
 
-  const handleStatusChange = (id, newStatus) => {
+  const handleStatusChange = async (id, newStatus) => {
     const now = new Date();
 
     setApplications((prev) =>
@@ -334,7 +358,7 @@ export default function Tracker() {
         const updated = {
           ...app,
           status: newStatus,
-          pending: ["Saved", "Applied"].includes(newStatus) ? "yes" : "no",
+          pending: newStatus === "Saved" ? "yes" : "no",
         };
 
         // ✅ update timeline instantly (optimistic UI)
@@ -347,32 +371,45 @@ export default function Tracker() {
       }),
     );
 
-    fetch(
-      //update status of application
-      `${import.meta.env.VITE_BACKEND_URL}/applications/modify/${id}/status`,
-      {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: REVERSE_STATUS_MAP[newStatus],
-        }),
-      },
-    ).catch(console.error);
+    try {
+      await fetch(
+        //update status of application
+        `${import.meta.env.VITE_BACKEND_URL}/applications/modify/${id}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: REVERSE_STATUS_MAP[newStatus],
+          }),
+        },
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
-  const pendingCount = applications.filter((a) => a.pending === "yes").length;
-  const appliedCount = applications.filter((a) => a.pending === "no").length;
+  const pendingCount = applications.filter((a) => a.status === "Saved").length;
+  const appliedCount = applications.filter((a) => a.status !== "Saved").length;
 
   return (
     <div className="min-h-screen bg-slate-50 px-12 py-10">
       <div className="max-w-4xl mx-auto">
         <div className="mb-9">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-sm text-slate-400">Hi,</span>
-            <span className="text-2xl font-bold text-slate-800">
-              {authUser?.name || "User"}
-            </span>
-            <span className="text-xl">👋</span>
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-sm text-slate-400">Hi,</span>
+              <span className="text-2xl font-bold text-slate-800">
+                {authUser?.name || "User"}
+              </span>
+              <span className="text-xl">👋</span>
+            </div>
+
+            <button
+              onClick={() => navigate("/applications/new")}
+              className="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-sm font-semibold hover:bg-teal-800 transition-colors shadow-sm"
+            >
+              + Add Application
+            </button>
           </div>
           <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
             Consistency is the bridge between where you are and where you want
@@ -437,6 +474,7 @@ export default function Tracker() {
                   key={app.id}
                   app={app}
                   onStatusChange={handleStatusChange}
+                  onOpenDetails={(id) => navigate(`/applications/getjobdetails/${id}`)}
                 />
               ))}
         </div>

@@ -37,7 +37,6 @@ async function signup(req, res) {
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
             expiresIn: "4d",
         });
-        console.log(token);
 
         res.cookie("token", token, {
             httpOnly: true,
@@ -54,13 +53,12 @@ async function signup(req, res) {
             },
         });
     } catch (err) {
-        console.log(err);
+        console.error(err);
         res.status(500).json({ message: "Server Error" });
     }
 }
 
 async function getMe(req, res) {
-    console.log("user getme req recieved");
     const token = req.cookies.token;
 
     if (!token) {
@@ -68,7 +66,20 @@ async function getMe(req, res) {
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        res.json({ user: decoded });
+        const user = await User.findById(decoded.id).select("name email authProvider");
+
+        if (!user) {
+            return res.json({ user: null });
+        }
+
+        res.json({
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                provider: user.authProvider,
+            },
+        });
     } catch {
         res.json({ user: null });
     }
@@ -113,7 +124,7 @@ async function sendOtp(req, res) {
             message: "OTP sent Successfully",
         });
     } catch (err) {
-        console.log(err);
+        console.error(err);
         res.status(500).json({
             success: false,
             message: "Failed to send OTP",
@@ -208,13 +219,9 @@ async function googleLogin(req, res) {
                 });
             }
         }
-        console.log(user);
-
         const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
             expiresIn: "4d",
         });
-
-        console.log(jwtToken);
 
         res.cookie("token", jwtToken, {
             httpOnly: true,

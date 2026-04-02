@@ -15,7 +15,9 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth")
 const docRoutes = require("./routes/doc")
 const applicationRoutes = require("./routes/application")
+const reminderRoutes = require("./routes/reminder")
 const { uploadToCloudinary, encryptBuffer, decryptBuffer, savetodb } = require("./services/cloudinaryUpload");
+const { startReminderScheduler } = require("./services/reminderScheduler");
 
 const authMiddleware = require("./middleware/authmiddleware");
 
@@ -52,6 +54,7 @@ app.use("/auth", authRoutes);
 app.use("/docs", authMiddleware, docRoutes);
 
 app.use("/applications", authMiddleware, applicationRoutes)
+app.use("/reminders", authMiddleware, reminderRoutes)
 app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, res) => {
 
   try {
@@ -69,8 +72,6 @@ app.post("/uploadfile", authMiddleware, uploadram.single("file"), async (req, re
       success: true,
       message: req.body.docName + " Saved Successfully"
     })
-
-    console.log(savedresult);
 
   }
   catch (err) {
@@ -131,13 +132,11 @@ app.get("/getfile", authMiddleware, async (req, res) => {
 
 
 
-app.post("/upload", upload.single("pdf"), async (req, res) => {
+app.post("/upload", authMiddleware, upload.single("pdf"), async (req, res) => {
   const filePath = req.file?.path;
 
   try {
-    console.log("Extracting information from the job posting...");
     const result = await jobPostingExtractor(filePath);
-    console.log(result);
     res.json(result);
   } catch (err) {
     res.status(500).json({
@@ -154,12 +153,10 @@ app.post("/upload", upload.single("pdf"), async (req, res) => {
 });
 
 
-app.post("/resume/parse", upload.single("pdf"), async (req, res) => {
+app.post("/resume/parse", authMiddleware, upload.single("pdf"), async (req, res) => {
   const filePath = req.file?.path;
   try {
     const result = await resumeParse(filePath);
-    console.log("Extracting information from the resume...");
-    console.log(result);
     res.json(result);
   } catch (err) {
     res.status(500).json({
@@ -177,17 +174,17 @@ app.post("/resume/parse", upload.single("pdf"), async (req, res) => {
 
 
 
-app.post("/match", async (req, res) => {
+app.post("/match", authMiddleware, async (req, res) => {
   try {
     const { resumeJSON, jobJSON } = req.body;
     const result = await analyseMatchResume(resumeJSON, jobJSON);
-    console.log(result);
     res.status(200).json(result);
   } catch (err) {
-    console.log(err);
+    console.error(err);
     res.status(500).json({
       error: "Match failed",
     });
   }
 });
 app.listen(5000, () => console.log("Server running on 5000"));
+startReminderScheduler();

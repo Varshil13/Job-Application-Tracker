@@ -68,11 +68,9 @@ export default function Signin({ onSwitchToSignup }) {
 
           if (data.success) {
             navigate("/applications"); // 👈 redirect here
-          } else {
-            console.log("Login failed");
           }
         }}
-        onError={() => console.log("Login Failed")}
+        onError={() => {}}
       />
 
       <div className="flex items-center gap-2">

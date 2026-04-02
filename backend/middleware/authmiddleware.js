@@ -8,8 +8,6 @@ async function  authMiddleware(req,res,next) {
         const token = req.cookies.token
       
         if(!token){
-            console.log("no token")
-            
             return res.status(401).json({
                 success:false,
                 message : "Not Authorized. Please Login"
