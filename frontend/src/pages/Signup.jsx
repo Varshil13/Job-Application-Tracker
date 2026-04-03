@@ -26,7 +26,7 @@ export default function Signup({ onSwitchToSignin }) {
     const toastId = toast.loading("Sending OTP...");
     try {
       const res = await fetch(
-        `api/auth/send-otp`,
+        `${import.meta.env.VITE_BACKEND_URL}/auth/send-otp`,
         {
           method: "POST",
           headers: {
@@ -59,7 +59,7 @@ export default function Signup({ onSwitchToSignin }) {
     const toastId = toast.loading("Verifying and creating account...");
     try {
       const res = await fetch(
-        `api/auth/signup`,
+        `${import.meta.env.VITE_BACKEND_URL}/auth/signup`,
         {
           method: "POST",
           headers: {
@@ -91,7 +91,7 @@ export default function Signup({ onSwitchToSignin }) {
         onSuccess={async (res) => {
           const token = res.credential;
 
-          await fetch("/api/auth/google", {
+          await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/google`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

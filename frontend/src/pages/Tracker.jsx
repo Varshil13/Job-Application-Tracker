@@ -295,7 +295,7 @@ export default function Tracker() {
     const fetchApplications = async () => {
       try {
         //get all applications for the user
-        const res = await fetch(`api/applications/getallapplications`, {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/getallapplications`, {
           credentials: "include",
         });
         const result = await res.json();
@@ -371,7 +371,7 @@ export default function Tracker() {
     try {
       await fetch(
         //update status of application
-        `api/applications/modify/${id}/status`,
+        `${import.meta.env.VITE_BACKEND_URL}/applications/modify/${id}/status`,
         {
           method: "PATCH",
           credentials: "include",

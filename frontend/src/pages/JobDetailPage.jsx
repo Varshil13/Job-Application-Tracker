@@ -235,7 +235,7 @@ function Documents({ jobId }) {
       try {
         //documents required for that job
         const r = await fetch(
-          `/api/applications/getjobdetails/${jobId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/applications/getjobdetails/${jobId}`,
           {
             credentials: "include",
           },
@@ -338,7 +338,7 @@ function ResumeMatch({ jobId, initialResult }) {
       try {
         //run resume match for that jobid
         const r = await fetch(
-          `/api/resume/match/${jobId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/resume/match/${jobId}`,
           {
             credentials: "include",
           },
@@ -474,7 +474,7 @@ function StatusTracker({ jobId, onStatusChange }) {
       try {
         // get status of that application
         const r = await fetch(
-          `/api/applications/${jobId}/status`,
+          `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
           {
             credentials: "include",
           },
@@ -512,7 +512,7 @@ function StatusTracker({ jobId, onStatusChange }) {
     try {
       //modify the status of application
       await fetch(
-        `/api/applications/${jobId}/status`,
+        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
         {
           method: "PATCH",
           credentials: "include",
@@ -744,7 +744,7 @@ export default function JobDetailPage() {
       try {
         // get application detail (from parsed body)
         const r = await fetch(
-          `/api/applications/getjobdetails/${jobId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/applications/getjobdetails/${jobId}`,
           {
             credentials: "include",
           },
@@ -777,7 +777,7 @@ export default function JobDetailPage() {
       try {
         //made earlier
         const r = await fetch(
-          `/api/applications/${jobId}/status`,
+          `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
           {
             credentials: "include",
           },
@@ -797,7 +797,7 @@ export default function JobDetailPage() {
       try {
         //for reminder
         const r = await fetch(
-          `/api/reminders/${jobId}`,
+          `${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`,
           {
             credentials: "include",
           },
@@ -816,7 +816,7 @@ export default function JobDetailPage() {
     setReminderSaving(true);
     try {
       // to modify status of reminder
-      await fetch(`/api/reminders/${jobId}`, {
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -834,7 +834,7 @@ export default function JobDetailPage() {
   const handleDraft = async () => {
     try {
       await fetch(
-        `/api/applications/${jobId}/status`,
+        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
         {
           method: "PATCH",
           credentials: "include",
@@ -857,7 +857,7 @@ export default function JobDetailPage() {
   const handleArchive = async () => {
     try {
       await fetch(
-        `/api/applications/${jobId}/status`,
+        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
         {
           method: "PATCH",
           credentials: "include",
@@ -876,7 +876,7 @@ export default function JobDetailPage() {
   const handleDelete = async () => {
     try {
       // delete application
-      await fetch(`/api/applications/${jobId}`, {
+      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}`, {
         method: "DELETE",
         credentials: "include",
       });

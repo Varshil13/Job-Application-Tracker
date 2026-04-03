@@ -65,7 +65,7 @@ export default function AddApplication() {
       const formData = new FormData();
       formData.append("pdf", jobFile);
 
-      const res = await fetch(`api/upload`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/upload`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -92,7 +92,7 @@ export default function AddApplication() {
     setLoadingJob(true);
     try {
       const res = await fetch(
-        `api/upload/text`,
+        `${import.meta.env.VITE_BACKEND_URL}/upload/text`,
         {
           method: "POST",
           credentials: "include",
@@ -130,7 +130,7 @@ export default function AddApplication() {
       resumeForm.append("pdf", resumeFile);
 
       const resumeRes = await fetch(
-        `api/resume/parse`,
+        `${import.meta.env.VITE_BACKEND_URL}/resume/parse`,
         {
           method: "POST",
           body: resumeForm,
@@ -143,7 +143,7 @@ export default function AddApplication() {
       setResumeDetails(resumeJSON);
 
       const matchRes = await fetch(
-        `api/match`,
+        `${import.meta.env.VITE_BACKEND_URL}/match`,
         {
           method: "POST",
           credentials: "include",
@@ -209,7 +209,7 @@ export default function AddApplication() {
         },
       };
 
-      const res = await fetch("/api/applications/create", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/create`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
