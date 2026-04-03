@@ -371,7 +371,7 @@ export default function Tracker() {
     try {
       await fetch(
         //update status of application
-        `${import.meta.env.VITE_BACKEND_URL}/applications/modify/${id}/status`,
+        `api/applications/modify/${id}/status`,
         {
           method: "PATCH",
           credentials: "include",
@@ -395,26 +395,22 @@ export default function Tracker() {
         <div className="mb-8">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-2">
-                <p className="text-[13px] text-slate-400 font-normal tracking-wide">
-                  {new Date().getHours() < 12
-                    ? "Good morning"
-                    : new Date().getHours() < 17
-                      ? "Good afternoon"
-                      : "Good evening"}
-                </p>
-                <span className="w-1 h-1 rounded-full bg-slate-300 inline-block" />
-                <p className="text-[13px] text-slate-400">
-                  {new Date().toLocaleDateString("en-US", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "short",
-                  })}
-                </p>
-              </div>
-              <h1 className="text-[22px] font-semibold text-slate-900 tracking-tight leading-snug">
-                {authUser?.name || "User"}
-              </h1>
+              <span className="text-[22px] font-semibold text-slate-900 tracking-tight leading-snug">
+                {(new Date().getHours() < 12
+                  ? "Good morning"
+                  : new Date().getHours() < 17
+                    ? "Good afternoon"
+                    : "Good evening") +
+                  ", " +
+                  (authUser?.name || "User")}
+              </span>
+              <p className="text-[13px] text-slate-400">
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "short",
+                })}
+              </p>
             </div>
 
             <div className="flex items-center gap-2.5 flex-wrap">

@@ -34,7 +34,9 @@ function ScorePie({ score }) {
 export default function AddApplication() {
   const navigate = useNavigate();
 
+  const [jobInputMode, setJobInputMode] = useState("pdf");
   const [jobFile, setJobFile] = useState(null);
+  const [jobText, setJobText] = useState("");
   const [resumeFile, setResumeFile] = useState(null);
 
   const [jobDetails, setJobDetails] = useState(null);
@@ -63,7 +65,7 @@ export default function AddApplication() {
       const formData = new FormData();
       formData.append("pdf", jobFile);
 
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/upload`, {
+      const res = await fetch(`api/upload`, {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -80,13 +82,44 @@ export default function AddApplication() {
     }
   };
 
+  const extractFromPastedText = async () => {
+    if (!jobText.trim()) {
+      setError("Please paste application details first.");
+      return;
+    }
+
+    setError("");
+    setLoadingJob(true);
+    try {
+      const res = await fetch(
+        `api/upload/text`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: jobText }),
+        },
+      );
+
+      if (!res.ok) throw new Error("Failed to extract job details");
+
+      const data = await res.json();
+      setJobDetails(data);
+    } catch (err) {
+      console.error(err);
+      setError("Could not extract job details from pasted text.");
+    } finally {
+      setLoadingJob(false);
+    }
+  };
+
   const uploadResumeAndMatch = async () => {
     if (!resumeFile) {
       setError("Please select a resume PDF.");
       return;
     }
     if (!jobDetails) {
-      setError("Upload application PDF first.");
+      setError("Extract application details first.");
       return;
     }
 
@@ -97,7 +130,7 @@ export default function AddApplication() {
       resumeForm.append("pdf", resumeFile);
 
       const resumeRes = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/resume/parse`,
+        `api/resume/parse`,
         {
           method: "POST",
           body: resumeForm,
@@ -110,7 +143,7 @@ export default function AddApplication() {
       setResumeDetails(resumeJSON);
 
       const matchRes = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/match`,
+        `api/match`,
         {
           method: "POST",
           credentials: "include",
@@ -132,7 +165,7 @@ export default function AddApplication() {
 
   const saveApplication = async (status) => {
     if (!jobDetails || !matchResult) {
-      setError("Upload and process both PDFs before saving.");
+      setError("Extract job details and process resume before saving.");
       return;
     }
 
@@ -206,7 +239,7 @@ export default function AddApplication() {
               Add Application
             </h1>
             <p className="text-slate-500 mt-1">
-              Upload job and resume PDFs to extract details, calculate match
+              Add job details via PDF or pasted text, then upload resume to calculate match
               score, and save.
             </p>
           </div>
@@ -226,27 +259,68 @@ export default function AddApplication() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className={cardClass}>
             <h2 className="text-lg font-semibold text-slate-800 text-center">
-              1. Upload Application PDF
+              1. Add Application Details
             </h2>
-            <div className="flex justify-center">
-              <div className="w-full max-w-md relative border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-teal-600 transition-colors">
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(e) => setJobFile(e.target.files?.[0] || null)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            <div className="flex gap-2 rounded-xl bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => setJobInputMode("pdf")}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  jobInputMode === "pdf"
+                    ? "bg-white text-teal-700 shadow-sm"
+                    : "text-slate-600 hover:text-slate-800"
+                }`}
+              >
+                Upload PDF
+              </button>
+              <button
+                type="button"
+                onClick={() => setJobInputMode("text")}
+                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                  jobInputMode === "text"
+                    ? "bg-white text-teal-700 shadow-sm"
+                    : "text-slate-600 hover:text-slate-800"
+                }`}
+              >
+                Paste Details
+              </button>
+            </div>
+
+            {jobInputMode === "pdf" ? (
+              <div className="flex justify-center">
+                <div className="w-full max-w-md relative border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-teal-600 transition-colors">
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => setJobFile(e.target.files?.[0] || null)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <UploadCloud
+                    className="mx-auto text-slate-400 mb-2"
+                    size={32}
+                  />
+                  <p className="text-sm text-slate-500">
+                    {jobFile ? jobFile.name : "Click to browse or drag & drop"}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <textarea
+                  value={jobText}
+                  onChange={(e) => setJobText(e.target.value)}
+                  rows={8}
+                  placeholder="Paste complete job details here (company, role, eligibility, deadline, links, etc.)"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-200"
                 />
-                <UploadCloud
-                  className="mx-auto text-slate-400 mb-2"
-                  size={32}
-                />
-                <p className="text-sm text-slate-500">
-                  {jobFile ? jobFile.name : "Click to browse or drag & drop"}
+                <p className="text-xs text-slate-400">
+                  Tip: Paste full listing text for better extraction quality.
                 </p>
               </div>
-            </div>
+            )}
+
             <button
-              onClick={uploadJobPdf}
+              onClick={jobInputMode === "pdf" ? uploadJobPdf : extractFromPastedText}
               disabled={loadingJob}
               className="w-full px-5 py-2.5 rounded-xl bg-teal-700 text-white font-medium hover:bg-teal-800 disabled:opacity-60"
             >

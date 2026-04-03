@@ -7,6 +7,13 @@ const Otp = require("../models/otpSchema");
 const otpGenerator = require("otp-generator");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+const authCookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 async function signup(req, res) {
     try {
         const { otp, name, email, password } = req.body;
@@ -38,12 +45,7 @@ async function signup(req, res) {
             expiresIn: "4d",
         });
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie("token", token, authCookieOptions);
         res.status(201).json({
             message: "Signup Success",
             user: {
@@ -161,12 +163,7 @@ async function signin(req, res) {
             expiresIn: "4d",
         });
 
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        res.cookie("token", token, authCookieOptions);
 
         res.status(200).json({
             message: "SignIn Success",
@@ -223,11 +220,7 @@ async function googleLogin(req, res) {
             expiresIn: "4d",
         });
 
-        res.cookie("token", jwtToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: "lax",
-        });
+        res.cookie("token", jwtToken, authCookieOptions);
 
         res.status(200).json({
             message: "Google Login Success",
@@ -247,8 +240,8 @@ async function logout(req, res) {
     try {
         res.clearCookie("token", {
             httpOnly: true,
-            secure: false,
-            sameSite: "lax",
+            secure: true,
+            sameSite: "None",
         });
 
         return res.status(200).json({

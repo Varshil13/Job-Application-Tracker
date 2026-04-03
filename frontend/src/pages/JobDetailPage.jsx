@@ -29,6 +29,41 @@ function formatDate(iso) {
   return `${d.getDate() + 1}/${d.getMonth()}/${String(d.getFullYear()).slice(2)}`;
 }
 
+function detectWorkMode(job) {
+  const values = [job?.workMode, job?.location, job?.description, job?.summary]
+    .filter(Boolean)
+    .map((v) => String(v).toLowerCase());
+
+  const combined = values.join(" ");
+  if (combined.includes("hybrid")) return "Hybrid";
+  if (combined.includes("remote") || combined.includes("work from home")) {
+    return "Remote";
+  }
+  if (
+    combined.includes("on-site") ||
+    combined.includes("onsite") ||
+    combined.includes("in office") ||
+    combined.includes("at office") ||
+    combined.includes("physically present")
+  ) {
+    return "On-site";
+  }
+  return null;
+}
+
+function normalizeEligibilityValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") {
+    return value > 0 ? String(value) : null;
+  }
+
+  const trimmed = String(value).trim();
+  if (!trimmed || trimmed === "0" || trimmed.toLowerCase() === "null") {
+    return null;
+  }
+  return trimmed;
+}
+
 function Badge({ children, color = "teal" }) {
   const cls =
     color === "teal"
@@ -99,11 +134,16 @@ function Overview({ job }) {
     );
 
   const el = job.eligibility || {};
+  const workMode = detectWorkMode(job);
+  const gpaValue = normalizeEligibilityValue(el.minGPA ?? el.cgpa);
+  const yearValue = normalizeEligibilityValue(el.year);
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
         <InfoRow label="Location" value={job.location} />
         <InfoRow label="Stipend/Salary" value={job.salary} />
+        <InfoRow label="Work Mode" value={workMode} />
         <InfoRow
           label="Job Type"
           value={
@@ -138,7 +178,7 @@ function Overview({ job }) {
         <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-2">
           Description
         </p>
-        <p className="text-sm text-slate-700 leading-relaxed">
+        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
           {job.description}
         </p>
       </div>
@@ -149,10 +189,8 @@ function Overview({ job }) {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {el.degree && <InfoRow label="Degree" value={el.degree} />}
-          {(el.minGPA || el.cgpa) && (
-            <InfoRow label="GPA/CGPA" value={el.minGPA ?? el.cgpa} />
-          )}
-          {el.year && <InfoRow label="Year" value={el.year} />}
+          {gpaValue && <InfoRow label="GPA/CGPA" value={gpaValue} />}
+          {yearValue && <InfoRow label="Year" value={yearValue} />}
           {el.experience && (
             <InfoRow label="Experience" value={el.experience} />
           )}
@@ -197,7 +235,7 @@ function Documents({ jobId }) {
       try {
         //documents required for that job
         const r = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/applications/getjobdetails/${jobId}`,
+          `/api/applications/getjobdetails/${jobId}`,
           {
             credentials: "include",
           },
@@ -300,7 +338,7 @@ function ResumeMatch({ jobId, initialResult }) {
       try {
         //run resume match for that jobid
         const r = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/resume/match/${jobId}`,
+          `/api/resume/match/${jobId}`,
           {
             credentials: "include",
           },
@@ -436,7 +474,7 @@ function StatusTracker({ jobId, onStatusChange }) {
       try {
         // get status of that application
         const r = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+          `/api/applications/${jobId}/status`,
           {
             credentials: "include",
           },
@@ -474,7 +512,7 @@ function StatusTracker({ jobId, onStatusChange }) {
     try {
       //modify the status of application
       await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+        `/api/applications/${jobId}/status`,
         {
           method: "PATCH",
           credentials: "include",
@@ -706,7 +744,7 @@ export default function JobDetailPage() {
       try {
         // get application detail (from parsed body)
         const r = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/applications/getjobdetails/${jobId}`,
+          `/api/applications/getjobdetails/${jobId}`,
           {
             credentials: "include",
           },
@@ -739,7 +777,7 @@ export default function JobDetailPage() {
       try {
         //made earlier
         const r = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+          `/api/applications/${jobId}/status`,
           {
             credentials: "include",
           },
@@ -759,7 +797,7 @@ export default function JobDetailPage() {
       try {
         //for reminder
         const r = await fetch(
-          `${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`,
+          `/api/reminders/${jobId}`,
           {
             credentials: "include",
           },
@@ -778,7 +816,7 @@ export default function JobDetailPage() {
     setReminderSaving(true);
     try {
       // to modify status of reminder
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`, {
+      await fetch(`/api/reminders/${jobId}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -796,7 +834,7 @@ export default function JobDetailPage() {
   const handleDraft = async () => {
     try {
       await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+        `/api/applications/${jobId}/status`,
         {
           method: "PATCH",
           credentials: "include",
@@ -819,7 +857,7 @@ export default function JobDetailPage() {
   const handleArchive = async () => {
     try {
       await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+        `/api/applications/${jobId}/status`,
         {
           method: "PATCH",
           credentials: "include",
@@ -838,7 +876,7 @@ export default function JobDetailPage() {
   const handleDelete = async () => {
     try {
       // delete application
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}`, {
+      await fetch(`/api/applications/${jobId}`, {
         method: "DELETE",
         credentials: "include",
       });

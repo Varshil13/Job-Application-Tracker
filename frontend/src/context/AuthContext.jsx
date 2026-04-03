@@ -11,7 +11,7 @@ export const AuthContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const fetchUser = async () => {
     try {
-      const res = await fetch(`/api/auth/getme`, {
+      const res = await fetch(`api/auth/getme`, {
         credentials: "include",
       });
 

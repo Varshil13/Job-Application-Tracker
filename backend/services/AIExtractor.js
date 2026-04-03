@@ -15,30 +15,82 @@ const client = new openAI({
 
 function buildPrompt(text = "") {
 
-  return `Extract job posting information from the following text and return as JSON:
+  return `Extract job posting information from the content below and return ONLY valid JSON.
 
-TEXT:
-${text}
+SOURCE CONTENT:
+${text || "[job content is provided as attached file data]"}
 
-RETURN ONLY VALID JSON (no markdown, no explanation):
+IMPORTANT RULES:
+- Keep output concise, practical, and easy to scan.
+- Prefer bullet-point style information over long paragraphs.
+- In description, include 4-7 short bullet points covering role, responsibilities, requirements, work setup, compensation, and apply process.
+- If information is missing, use null (or [] for arrays) instead of guessing.
+- Keep links as full URLs when available.
+- Return only JSON (no markdown, no explanation).
+
+OUTPUT JSON SHAPE:
 {
-  "company": "company name",
-  "position": "job title",
-  "applicationDeadline": "deadline date (date month , year) or null",
+  "company": "company name or null",
+  "position": "job title or null",
+  "location": "city/region/remote/hybrid or null",
+  "jobType": "full-time/part-time/internship/contract or null",
+  "salary": "salary/stipend/CTC details or null",
+  "applicationDeadline": "deadline date text or null",
+  "description": "concise bullet lines in a single string separated by newline, each line prefixed with '- '",
+  "summary": "1 line concise summary of the role",
   "eligibility": {
     "minGPA": "GPA requirement or null",
-    "degree":"degree requirements or null" ,
-    "branches": ["list of branches"],
-    "year": "year requirement or null",
-    "skills": ["list of required skills"],
-    "experience": "experience requirement or null"
+    "degree": "degree requirement or null",
+    "branches": ["allowed branches"],
+    "year": "year requirement text (e.g., 3rd/final) or null",
+    "skills": ["required skills and tools"],
+    "experience": "required experience or null"
   },
-  "salary": "salary/stipend or null",
-  "jobType": "full-time/part-time/internship",
-  "portalLink": "link if mentioned or null",
-  "applicationLink": "application URL or null"
+  "portalLink": "official portal link or null",
+  "applicationLink": "apply URL or null"
 }`
 
+}
+
+function toBulletDescription(input) {
+  if (!input || typeof input !== "string") return null;
+
+  const raw = input.trim();
+  if (!raw) return null;
+
+  // Keep existing list-like output from model as is.
+  if (/[\n\r]\s*[-*•]/.test(raw)) {
+    return raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^[*•]\s*/, "- "))
+      .join("\n");
+  }
+
+  const parts = raw
+    .split(/(?<=[.!?;])\s+/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 8)
+    .slice(0, 7);
+
+  if (parts.length <= 1) return raw;
+  return parts.map((line) => `- ${line}`).join("\n");
+}
+
+function normalizeJobExtraction(parsed) {
+  const result = { ...parsed };
+  const descriptionSource =
+    (typeof result.description === "string" && result.description) ||
+    (typeof result.summary === "string" && result.summary) ||
+    "";
+
+  result.description = toBulletDescription(descriptionSource);
+  if (typeof result.summary === "string") {
+    result.summary = result.summary.trim();
+  }
+
+  return result;
 }
 function buildResumePrompt(resume = "") {
   const currentDate = new Date();
@@ -91,7 +143,7 @@ async function extractFromText(data) {
       input: prompt,
     });
     const responseText = result.output_text
-    return JSON.parse(cleanJSON(responseText));
+    return normalizeJobExtraction(JSON.parse(cleanJSON(responseText)));
 
 
   }
@@ -123,7 +175,7 @@ async function extractFromFile(filePath, mimeType = "application/pdf") {
     });
 
     const responseText = result.output_text;
-    return JSON.parse(cleanJSON(responseText));
+    return normalizeJobExtraction(JSON.parse(cleanJSON(responseText)));
 
   } catch (err) {
     console.error("Gemini File Extraction Error:", err);

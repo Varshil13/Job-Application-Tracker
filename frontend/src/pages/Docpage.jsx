@@ -177,7 +177,7 @@ const DocPage = () => {
   const fetchDocs = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/docs/documents`,
+        `api/docs/documents`,
         {
           credentials: "include",
         },
@@ -198,7 +198,7 @@ const DocPage = () => {
     }
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/docs/rename/${docId}`,
+        `api/docs/rename/${docId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -218,7 +218,7 @@ const DocPage = () => {
   const handleDelete = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/docs/delete/${deleteModal.id}`,
+        `api/docs/delete/${deleteModal.id}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -238,7 +238,7 @@ const DocPage = () => {
     setDownloadingDoc({ id: docId, name: fileName });
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/docs/download/${docId}`,
+        `api/docs/download/${docId}`,
         {
           method: "GET",
           credentials: "include",
@@ -283,7 +283,7 @@ const DocPage = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/uploadfile`,
+        `api/uploadfile`,
         {
           method: "POST",
           body: formData,

@@ -4,7 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser")
 const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
-const { analyseMatchResume } = require("./services/geminiExtractor");
+const { analyseMatchResume, extractFromText } = require("./services/AIExtractor");
 
 const fs = require("fs")
 
@@ -35,7 +35,7 @@ const uploadram = multer({ storage: multer.memoryStorage() });
 
 //upload , multer ka object hai aur hamari file ka object bana dega meta data ke sath aur usko uploads folder me store kar dega
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: `${process.env.FRONTEND_URL}`,
   credentials: true
 }));
 
@@ -149,6 +149,21 @@ app.post("/upload", authMiddleware, upload.single("pdf"), async (req, res) => {
         if (err) console.error("Failed to delete file:", err);
       });
     }
+  }
+});
+
+app.post("/upload/text", authMiddleware, async (req, res) => {
+  const { text } = req.body;
+
+  if (!text || !String(text).trim()) {
+    return res.status(400).json({ error: "Job details text is required" });
+  }
+
+  try {
+    const result = await extractFromText({ text: String(text) });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Extraction Failed" });
   }
 });
 

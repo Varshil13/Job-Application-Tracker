@@ -23,7 +23,7 @@ export default function Signin({ onSwitchToSignup }) {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/auth/signin`,
+        `api/auth/signin`,
         {
           method: "POST",
           headers: {
@@ -55,7 +55,7 @@ export default function Signin({ onSwitchToSignup }) {
         onSuccess={async (res) => {
           const token = res.credential;
 
-          const response = await fetch("/api/auth/google", {
+          const response = await fetch("api/auth/google", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
