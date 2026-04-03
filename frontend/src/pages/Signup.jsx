@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import PillButton from "../components/PillButton";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
-
+import { useNavigate } from "react-router-dom";
 export default function Signup({ onSwitchToSignin }) {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const { setAuthUser } = useAuth();
+  const { fetchUser } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -31,11 +33,11 @@ export default function Signup({ onSwitchToSignin }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ email: form.email }),
-        }
+        },
       );
 
       const data = await res.json();
-      if (data.success) {
+      if (data.user) {
         toast.success("OTP sent to your email!", { id: toastId });
         setOtpSent(true);
       } else {
@@ -65,7 +67,7 @@ export default function Signup({ onSwitchToSignin }) {
           },
           credentials: "include",
           body: JSON.stringify({ ...form, otp }),
-        }
+        },
       );
 
       const data = await res.json();
@@ -85,7 +87,7 @@ export default function Signup({ onSwitchToSignin }) {
 
   return (
     <div className="flex flex-col gap-4">
-           <GoogleLogin
+      <GoogleLogin
         onSuccess={async (res) => {
           const token = res.credential;
 
@@ -97,6 +99,7 @@ export default function Signup({ onSwitchToSignin }) {
             body: JSON.stringify({ token }),
             credentials: "include",
           });
+          await fetchUser();
         }}
         onError={() => {}}
       />

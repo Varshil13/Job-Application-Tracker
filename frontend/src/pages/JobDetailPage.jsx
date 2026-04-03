@@ -26,7 +26,7 @@ function todayISO() {
 function formatDate(iso) {
   if (!iso) return null;
   const d = new Date(iso);
-  return `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`;
+  return `${d.getDate() + 1}/${d.getMonth()}/${String(d.getFullYear()).slice(2)}`;
 }
 
 function Badge({ children, color = "teal" }) {
@@ -461,8 +461,7 @@ function StatusTracker({ jobId, onStatusChange }) {
           if (val) mapped[key] = val;
         });
         setDates(mapped);
-      } catch {
-      }
+      } catch {}
     };
 
     fetchStatus();
@@ -474,12 +473,15 @@ function StatusTracker({ jobId, onStatusChange }) {
     if (extraDateField) body[extraDateField] = extraDateValue;
     try {
       //modify the status of application
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
     } catch (err) {
       console.error(err);
     } finally {
@@ -745,8 +747,7 @@ export default function JobDetailPage() {
         if (!r.ok) throw new Error("Failed to fetch current status");
         const d = await r.json();
         setCurrentStatus(d.status?.toLowerCase() ?? "saved");
-      } catch {
-      }
+      } catch {}
     };
 
     fetchCurrentStatus();
@@ -757,13 +758,15 @@ export default function JobDetailPage() {
     const fetchReminderState = async () => {
       try {
         //for reminder
-        const r = await fetch(`${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`, {
-          credentials: "include",
-        });
+        const r = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/reminders/${jobId}`,
+          {
+            credentials: "include",
+          },
+        );
         const d = await r.json();
         setReminderEnabled(d.enabled ?? false);
-      } catch {
-      }
+      } catch {}
     };
 
     fetchReminderState();
@@ -789,17 +792,25 @@ export default function JobDetailPage() {
   };
 
   const isSavedOnly = currentStatus === "saved";
-
+  const [statusVersion, setStatusVersion] = useState(0);
   const handleDraft = async () => {
     try {
-      //earlier
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "applied", appliedDate: todayISO() }),
-      });
+      await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "applied", appliedDate: todayISO() }),
+        },
+      );
       setCurrentStatus("applied");
+      setJob((prev) => ({
+        ...prev,
+        status: "applied",
+        appliedDate: todayISO(),
+      }));
+      setStatusVersion((v) => v + 1);
     } catch (err) {
       console.error(err);
     }
@@ -807,11 +818,18 @@ export default function JobDetailPage() {
 
   const handleArchive = async () => {
     try {
-      //change draft to apply or apply to draft
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/archive`, {
-        method: "PATCH",
-        credentials: "include",
-      });
+      await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/applications/${jobId}/status`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "saved" }),
+        },
+      );
+      setCurrentStatus("saved"); // ✅ reflects in status badge
+      setJob((prev) => ({ ...prev, status: "saved" }));
+      setStatusVersion((v) => v + 1);
     } catch (err) {
       console.error(err);
     }
@@ -898,8 +916,8 @@ export default function JobDetailPage() {
                     <span
                       className={`text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider border ${
                         isSavedOnly
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : "bg-red-50 text-red-500 border-red-200"
+                          ? "bg-red-50 text-red-500 border-red-200"
+                          : "bg-green-50 text-green-700 border-green-200"
                       }`}
                     >
                       {currentStatus}
@@ -952,7 +970,7 @@ export default function JobDetailPage() {
                       d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                     />
                   </svg>
-                  <span className="hidden sm:inline">Draft Application</span>
+                  <span className="hidden sm:inline">Apply</span>
                 </button>
               ) : (
                 <button
@@ -1043,6 +1061,7 @@ export default function JobDetailPage() {
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
               <StatusTracker
                 jobId={jobId}
+                key={statusVersion}
                 onStatusChange={(s) => setCurrentStatus(s)}
               />
             </div>

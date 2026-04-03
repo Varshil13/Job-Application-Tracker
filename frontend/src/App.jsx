@@ -42,13 +42,20 @@ function App() {
       <Routes>
         <Route
           element={
-            authUser ? <WorkspaceShell onLogout={handleLogout} /> : <Navigate to="/auth" />
+            authUser ? (
+              <WorkspaceShell onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/auth" />
+            )
           }
         >
           <Route path="/" element={<Navigate to="/applications" replace />} />
           <Route path="/applications" element={<Tracker />} />
           <Route path="/applications/new" element={<AddApplication />} />
-          <Route path="/applications/getjobdetails/:jobId" element={<JobDetailPage />} />
+          <Route
+            path="/applications/getjobdetails/:jobId"
+            element={<JobDetailPage />}
+          />
           <Route path="/docs" element={<DocPage />} />
         </Route>
         <Route
@@ -57,7 +64,9 @@ function App() {
         />
         <Route
           path="*"
-          element={<Navigate to={authUser ? "/applications" : "/auth"} replace />}
+          element={
+            <Navigate to={authUser ? "/applications" : "/auth"} replace />
+          }
         />
       </Routes>
       <Toaster position="top-center" reverseOrder={false} />

@@ -2,12 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  Plus,
-  X,
-  UploadCloud,
-  Check,
-} from "lucide-react";
+import { Plus, X, UploadCloud, Check } from "lucide-react";
 
 const DownloadLoader = ({ fileName }) => (
   <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
@@ -178,7 +173,6 @@ const DocPage = () => {
   const [editValue, setEditValue] = useState("");
   const [deleteModal, setDeleteModal] = useState(null);
   const [confirmText, setConfirmText] = useState("");
- 
 
   const fetchDocs = async () => {
     try {
@@ -314,8 +308,6 @@ const DocPage = () => {
     }
   };
 
- 
-
   return (
     <div className="text-slate-900">
       {/* Toast — top center */}
@@ -352,7 +344,8 @@ const DocPage = () => {
             {documents.map((doc) => {
               const isPdf = doc.mimeType === "application/pdf";
               const isDoc =
-                doc.mimeType?.includes("word") || doc.mimeType?.includes("document");
+                doc.mimeType?.includes("word") ||
+                doc.mimeType?.includes("document");
               const isImg = doc.mimeType?.startsWith("image/");
 
               const typeLabel = isPdf
@@ -361,7 +354,9 @@ const DocPage = () => {
                   ? "DOC"
                   : isImg
                     ? "IMG"
-                    : (doc.mimeType?.split("/")[1] || "FILE").toUpperCase().slice(0, 4);
+                    : (doc.mimeType?.split("/")[1] || "FILE")
+                        .toUpperCase()
+                        .slice(0, 4);
 
               const pageGradient = isPdf
                 ? "linear-gradient(180deg, #fff7f8 0%, #ffe9ec 100%)"
@@ -390,13 +385,59 @@ const DocPage = () => {
               return (
                 <div
                   key={doc._id}
-                  className="group relative flex h-[300px] w-40 flex-col items-center justify-start cursor-default select-none"
+                  className=" group relative flex h-[300px] w-40 flex-col items-center justify-start cursor-default select-none"
                 >
                   <div
-                    className="relative mx-auto h-52 w-40 transition-transform duration-300 group-hover:-translate-y-1"
-                    style={{ filter: "drop-shadow(0 16px 28px rgba(2, 6, 23, 0.18))" }}
+                    className="relative overflow-hidden group relative mx-auto h-52 w-40 transition-transform duration-300 group-hover:-translate-y-1"
+                    style={{
+                      filter: "drop-shadow(0 16px 28px rgba(2, 6, 23, 0.18))",
+                    }}
                   >
                     <div className="absolute inset-0 overflow-hidden rounded-[22px] border border-slate-200 bg-white">
+                      {editingId !== doc._id && (
+                        <div
+                          className="absolute h-full inset-x-0 bottom-16 z-20
+translate-y-[110%] group-hover:translate-y-0
+transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]
+pointer-events-none group-hover:pointer-events-auto opacity-0 group-hover:opacity-100
+"
+                        >
+                          <div className="h-full w-full flex flex-col justify-end overflow-hidden border border-slate-200 bg-white shadow-[0_-8px_25px_rgba(2,6,23,0.25)]">
+                            <button
+                              onClick={() => {
+                                setEditingId(doc._id);
+                                setEditValue(doc.docName);
+                              }}
+                              className="block w-full border-b border-slate-100 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                            >
+                              Rename
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                handleDownload(doc._id, doc.originalName)
+                              }
+                              disabled={!!downloadingDoc}
+                              className="block w-full border-b border-slate-100 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                            >
+                              Download
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setDeleteModal({
+                                  id: doc._id,
+                                  name: doc.docName,
+                                });
+                                setConfirmText("");
+                              }}
+                              className="block w-full px-3 py-2.5 text-left text-sm font-semibold text-red-600 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
                       <div
                         className="absolute inset-0 rounded-[22px] border"
                         style={{ background: pageGradient, borderColor }}
@@ -448,35 +489,7 @@ const DocPage = () => {
                     </div>
                   </div>
 
-                  {editingId !== doc._id && (
-                    <div className="pointer-events-none absolute left-1/2 top-[214px] z-20 w-40 -translate-x-1/2 translate-y-1 origin-top rounded-xl border border-slate-200 bg-white shadow-lg shadow-slate-900/10 opacity-0 scale-y-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:scale-y-100 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:scale-y-100 group-focus-within:opacity-100">
-                      <button
-                        onClick={() => {
-                          setEditingId(doc._id);
-                          setEditValue(doc.docName);
-                        }}
-                        className="block w-full border-b border-slate-100 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-                      >
-                        Rename
-                      </button>
-                      <button
-                        onClick={() => handleDownload(doc._id, doc.originalName)}
-                        disabled={!!downloadingDoc}
-                        className="block w-full border-b border-slate-100 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-40"
-                      >
-                        Download
-                      </button>
-                      <button
-                        onClick={() => {
-                          setDeleteModal({ id: doc._id, name: doc.docName });
-                          setConfirmText("");
-                        }}
-                        className="block w-full px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+                  {/* ── Slip menu — inside the icon wrapper, slides up from badge ── */}
 
                   {editingId === doc._id ? (
                     <div className="mt-3 flex w-40 items-center gap-1.5">
@@ -488,7 +501,7 @@ const DocPage = () => {
                           if (e.key === "Enter") handleRename(doc._id);
                           if (e.key === "Escape") setEditingId(null);
                         }}
-                        className="flex-1 rounded-lg border border-[#0f766e]/45 bg-white px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition-all focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20"
+                        className="w-24 rounded-lg border border-[#0f766e]/45 bg-white px-3 py-2 text-sm font-semibold text-slate-800 outline-none transition-all focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20"
                       />
                       <button
                         onClick={() => handleRename(doc._id)}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Clock, CheckCircle2 } from "lucide-react";
 const TIMELINE_STEPS = ["Saved", "Applied", "Screen", "Interview", "Offer"];
 
 const stepIndex = (status) => {
@@ -30,11 +31,7 @@ function StatusDropdown({ current, onChange, appId }) {
   const terminal = ["Withdrawn", "Ghosted", "Rejected", "Accepted"];
 
   return (
-    <div
-      ref={ref}
-      className="relative"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <div ref={ref} className="relative" onClick={(e) => e.stopPropagation()}>
       <button
         onClick={() => setOpen((p) => !p)}
         className="flex items-center justify-between w-36 px-3 py-1.5 border border-slate-200 rounded-lg bg-white text-sm font-medium text-slate-700 hover:border-teal-300 hover:text-teal-700 transition-colors"
@@ -302,7 +299,7 @@ export default function Tracker() {
           credentials: "include",
         });
         const result = await res.json();
-        const data  = result.data
+        const data = result.data;
 
         if (!Array.isArray(data)) {
           setApplications([]);
@@ -394,73 +391,121 @@ export default function Tracker() {
   return (
     <div className="min-h-screen bg-slate-50 px-12 py-10">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-9">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-sm text-slate-400">Hi,</span>
-              <span className="text-2xl font-bold text-slate-800">
+        {/* ── Header ── */}
+        <div className="mb-8">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-2">
+                <p className="text-[13px] text-slate-400 font-normal tracking-wide">
+                  {new Date().getHours() < 12
+                    ? "Good morning"
+                    : new Date().getHours() < 17
+                      ? "Good afternoon"
+                      : "Good evening"}
+                </p>
+                <span className="w-1 h-1 rounded-full bg-slate-300 inline-block" />
+                <p className="text-[13px] text-slate-400">
+                  {new Date().toLocaleDateString("en-US", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </p>
+              </div>
+              <h1 className="text-[22px] font-semibold text-slate-900 tracking-tight leading-snug">
                 {authUser?.name || "User"}
-              </span>
-              <span className="text-xl">👋</span>
+              </h1>
             </div>
 
-            <button
-              onClick={() => navigate("/applications/new")}
-              className="px-4 py-2.5 rounded-xl bg-teal-700 text-white text-sm font-semibold hover:bg-teal-800 transition-colors shadow-sm"
-            >
-              + Add Application
-            </button>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <button
+                onClick={() => navigate("/applications/new")}
+                className="flex items-center gap-1.5 px-3 h-[34px] rounded-lg bg-teal-700 hover:bg-teal-800 active:scale-[0.97] text-white text-[13px] font-medium tracking-[0.01em] transition-all"
+              >
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path
+                    d="M6 1.5V10.5M1.5 6H10.5"
+                    stroke="white"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                Add application
+              </button>
+            </div>
           </div>
-          <p className="text-sm text-slate-500 mt-1.5 leading-relaxed">
-            Consistency is the bridge between where you are and where you want
-            to be —{" "}
-            <span className="text-teal-700 font-medium">
-              keep showing up, every application counts.
+        </div>
+
+        {/* ── Stats bar ── */}
+        <div className="flex items-center gap-3 flex-wrap mb-8">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-[13px]">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect
+                x="1.5"
+                y="1.5"
+                width="11"
+                height="11"
+                rx="2.5"
+                stroke="#888780"
+                strokeWidth="1.2"
+              />
+              <path
+                d="M4.5 7H7M4.5 9.5H9.5M4.5 4.5H9.5"
+                stroke="#888780"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="text-slate-500">Total</span>
+            <span className="font-semibold text-slate-800">
+              {loading ? "—" : applications.length}
             </span>
-          </p>
+          </div>
+
+          <div className="w-px h-4 bg-slate-200" />
+
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-[13px]">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle
+                cx="7"
+                cy="7"
+                r="5.5"
+                stroke="#f59e0b"
+                strokeWidth="1.2"
+              />
+              <path
+                d="M7 4.2V7.3L9 8.5"
+                stroke="#f59e0b"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="text-slate-500">Pending</span>
+            <span className="font-semibold text-amber-700">
+              {loading ? "—" : pendingCount}
+            </span>
+          </div>
+
+          <div className="w-px h-4 bg-slate-200" />
+
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-[13px]">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M2.5 7.5L5.5 10.5L11.5 4"
+                stroke="#0f766e"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span className="text-slate-500">Applied</span>
+            <span className="font-semibold text-teal-700">
+              {loading ? "—" : appliedCount}
+            </span>
+          </div>
         </div>
 
-        <div className="flex gap-3 mb-8">
-          <StatCard
-            label="Pending"
-            count={loading ? "—" : pendingCount}
-            accent="bg-amber-50"
-            icon={
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle
-                  cx="9"
-                  cy="9"
-                  r="7.5"
-                  stroke="#f59e0b"
-                  strokeWidth="1.5"
-                />
-                <path
-                  d="M9 5.5V9.5L11.5 11"
-                  stroke="#f59e0b"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            }
-          />
-          <StatCard
-            label="Applied"
-            count={loading ? "—" : appliedCount}
-            accent="bg-teal-50"
-            icon={
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path
-                  d="M3 9.5L7 13.5L15 5"
-                  stroke="#0f766e"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            }
-          />
-        </div>
-
+        {/* ── Application cards ── */}
         <div className="flex flex-col gap-3">
           {loading
             ? [1, 2, 3].map((i) => (
@@ -474,7 +519,9 @@ export default function Tracker() {
                   key={app.id}
                   app={app}
                   onStatusChange={handleStatusChange}
-                  onOpenDetails={(id) => navigate(`/applications/getjobdetails/${id}`)}
+                  onOpenDetails={(id) =>
+                    navigate(`/applications/getjobdetails/${id}`)
+                  }
                 />
               ))}
         </div>

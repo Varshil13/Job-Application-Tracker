@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import PillButton from "../components/PillButton";
 import toast from "react-hot-toast";
@@ -66,8 +66,9 @@ export default function Signin({ onSwitchToSignup }) {
 
           const data = await response.json();
 
-          if (data.success) {
-            navigate("/applications"); // 👈 redirect here
+          if (data.user) {
+            localStorage.setItem("chat-user", JSON.stringify(data.user));
+            setAuthUser(data.user);
           }
         }}
         onError={() => {}}
