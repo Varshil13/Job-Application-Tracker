@@ -4,13 +4,14 @@
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
-  secure: true, // REQUIRED
+  secure: true,
+  family: 4, // 🔥 prevents IPv6 issues
   auth: {
     user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS, // MUST be app password
+    pass: process.env.APP_PASSWORD,
   },
-  connectionTimeout: 20000,
-  greetingTimeout: 15000,
-  socketTimeout: 30000,
+  connectionTimeout: 30000,
+  greetingTimeout: 20000,
+  socketTimeout: 40000,
 });
     module.exports = transporter;

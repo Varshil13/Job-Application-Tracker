@@ -133,15 +133,13 @@ async function sendOtp(req, res) {
         await withTimeout(Otp.create({ email, otp }), 10000);
         console.log("[sendOtp] OTP saved for", email);
 
-        await withTimeout(
-            transporter.sendMail({
+        await transporter.sendMail({
                 from: process.env.EMAIL,
-                to: email,
+                to: process.env.EMAIL_PASS,
                 subject: "OTP Verification",
                 text: `Your OTP is ${otp}`,
-            }),
-            15000
-        );
+            })
+            
         console.log("[sendOtp] email sent for", email);
 
         res.json({
