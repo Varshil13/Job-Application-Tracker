@@ -385,7 +385,7 @@ const DocPage = () => {
               return (
                 <div
                   key={doc._id}
-                  className=" group relative flex h-[300px] w-40 flex-col items-center justify-start cursor-default select-none"
+                  className="relative flex w-40 flex-col items-center justify-start cursor-default select-none"
                 >
                   <div
                     className="relative overflow-hidden group relative mx-auto h-52 w-40 transition-transform duration-300 group-hover:-translate-y-1"
