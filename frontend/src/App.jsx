@@ -23,7 +23,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${import.meta.env.VITE_BACKEND_URL}/auth/logout`, {
+      await fetch("api/auth/logout", {
         method: "POST",
         credentials: "include",
       });

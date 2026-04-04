@@ -86,7 +86,7 @@ export default function Signin({ onSwitchToSignup }) {
           <input
             className="px-3.5 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-40 disabled:opacity-50"
             type="email"
-            placeholder="you@example.com"
+            placeholder="Enter your email address"
             value={form.email}
             onChange={handleChange("email")}
             required
@@ -99,13 +99,14 @@ export default function Signin({ onSwitchToSignup }) {
           <input
             className="px-3.5 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-40 disabled:opacity-50"
             type="password"
-            placeholder="Minimum 7 characters"
+            placeholder="Enter password"
             value={form.password}
             onChange={handleChange("password")}
             minLength={7}
             required
             disabled={loading}
           />
+          <span className="text-sm text-slate-500">Minimum of 7 characters</span>
         </label>
 
         <PillButton variant="solid" type="submit" disabled={loading}>

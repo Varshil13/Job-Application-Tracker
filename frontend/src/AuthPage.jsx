@@ -8,13 +8,11 @@ export default function AuthPage({ onGoogleAuth = () => {} }) {
 
   const title =
     activeTab === "signup" ? "Create your account" : "Sign in to continue";
-  const subtitle =
-    "Clean, distraction-free auth with Google single sign-on and a simple email flow.";
 
   return (
     <AuthLayout
       title={title}
-      subtitle={subtitle}
+      subtitle=""
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
