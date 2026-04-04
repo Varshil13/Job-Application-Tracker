@@ -24,7 +24,10 @@ export default function Signup({ onSwitchToSignin }) {
     }
     setLoading(true);
     const toastId = toast.loading("Sending OTP...");
+    let timeoutId;
     try {
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 20000);
       const res = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/auth/send-otp`,
         {
@@ -33,19 +36,25 @@ export default function Signup({ onSwitchToSignin }) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ email: form.email }),
+          signal: controller.signal,
         },
       );
 
-      const data = await res.json();
-      if (data.user) {
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
         toast.success("OTP sent to your email!", { id: toastId });
         setOtpSent(true);
       } else {
         toast.error(data.message || "Failed to send OTP", { id: toastId });
       }
     } catch (error) {
-      toast.error("An error occurred. Please try again.", { id: toastId });
+      if (error.name === "AbortError") {
+        toast.error("Request timed out. Please try again.", { id: toastId });
+      } else {
+        toast.error("An error occurred. Please try again.", { id: toastId });
+      }
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
       setLoading(false);
     }
   };

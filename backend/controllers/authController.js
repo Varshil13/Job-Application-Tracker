@@ -11,8 +11,25 @@ const authCookieOptions = {
     httpOnly: true,
     secure: true,
     sameSite: "None",
+    path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
 };
+
+function withTimeout(promise, ms) {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("EMAIL_TIMEOUT")), ms);
+
+        promise
+            .then((value) => {
+                clearTimeout(timer);
+                resolve(value);
+            })
+            .catch((error) => {
+                clearTimeout(timer);
+                reject(error);
+            });
+    });
+}
 
 async function signup(req, res) {
     try {
@@ -90,6 +107,7 @@ async function getMe(req, res) {
 async function sendOtp(req, res) {
     try {
         const { email } = req.body;
+        console.log("[sendOtp] request received for", email);
 
         if (!email || !email.includes("@")) {
             return res.status(400).json({
@@ -112,21 +130,39 @@ async function sendOtp(req, res) {
             specialChars: false,
         });
 
-        await Otp.create({ email, otp });
+        await withTimeout(Otp.create({ email, otp }), 10000);
+        console.log("[sendOtp] OTP saved for", email);
 
-        await transporter.sendMail({
-            from: process.env.EMAIL,
-            to: email,
-            subject: "OTP Verification",
-            text: `Your OTP is ${otp}`,
-        });
+        await withTimeout(
+            transporter.sendMail({
+                from: process.env.EMAIL,
+                to: email,
+                subject: "OTP Verification",
+                text: `Your OTP is ${otp}`,
+            }),
+            15000
+        );
+        console.log("[sendOtp] email sent for", email);
 
         res.json({
             success: true,
             message: "OTP sent Successfully",
         });
     } catch (err) {
-        console.error(err);
+        console.error("[sendOtp] failed", err);
+        await Otp.deleteMany({ email: req.body?.email }).catch(() => {});
+        if (err.message === "EMAIL_TIMEOUT") {
+            return res.status(504).json({
+                success: false,
+                message: "Email service timeout. Please try again.",
+            });
+        }
+        if (err.name === "MongooseError" || err.name === "MongoServerError") {
+            return res.status(503).json({
+                success: false,
+                message: "Database timeout. Please try again.",
+            });
+        }
         res.status(500).json({
             success: false,
             message: "Failed to send OTP",
@@ -238,10 +274,18 @@ async function googleLogin(req, res) {
 }
 async function logout(req, res) {
     try {
-        res.clearCookie("token", {
+        const clearOptions = {
             httpOnly: true,
             secure: true,
             sameSite: "None",
+            path: "/",
+        };
+
+        res.clearCookie("token", clearOptions);
+        res.cookie("token", "", {
+            ...clearOptions,
+            expires: new Date(0),
+            maxAge: 0,
         });
 
         return res.status(200).json({
