@@ -134,12 +134,12 @@ async function sendOtp(req, res) {
         console.log("[sendOtp] OTP saved for", email);
 
         await transporter.sendMail({
-                from: process.env.EMAIL,
-                to: process.env.EMAIL_PASS,
-                subject: "OTP Verification",
-                text: `Your OTP is ${otp}`,
-            })
-            
+            from: process.env.EMAIL,
+            to: process.env.EMAIL_PASS,
+            subject: "OTP Verification",
+            text: `Your OTP is ${otp}`,
+        })
+
         console.log("[sendOtp] email sent for", email);
 
         res.json({
@@ -148,7 +148,7 @@ async function sendOtp(req, res) {
         });
     } catch (err) {
         console.error("[sendOtp] failed", err);
-        await Otp.deleteMany({ email: req.body?.email }).catch(() => {});
+        await Otp.deleteMany({ email: req.body?.email }).catch(() => { });
         if (err.message === "EMAIL_TIMEOUT") {
             return res.status(504).json({
                 success: false,
