@@ -29,7 +29,6 @@ A full-stack **Job Application Tracker** built using the MERN stack, designed to
 
 - **Smart Reminders**
   - **_Pre-Application Reminders_**
-  - If a job is saved but not yet applied, users receive:
     - Reminder 5 days before the application deadline
     - Reminder 1 day before the application deadline
   - Result Notifications
@@ -72,10 +71,8 @@ A full-stack **Job Application Tracker** built using the MERN stack, designed to
 ### Clone the repository
 
 ```
-
 git clone [https://github.com/your-username/job-application-tracker.git](https://github.com/your-username/job-application-tracker.git)
 cd job-application-tracker
-
 ```
 
 ### Setup Backend
@@ -87,6 +84,7 @@ npm install
 
 ### Create a .env file in the backend folder:
 
+```
 GROK_API_KEY = your_grok_api_key
 
 MONGOOSE_URI = your_mongodb_uri
@@ -108,11 +106,11 @@ GOOGLE_CLIENT_ID=your_google_id
 EMAIL=trakio.team@gmail.com
 
 EMAIL_PASS= email_pass
+```
 
 ### Run backend
 
 ```
-
 npm run dev
 ```
 
