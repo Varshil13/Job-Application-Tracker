@@ -1,16 +1,21 @@
-   
-   const nodemailer = require("nodemailer");
-   
+const dns = require('dns');
+const { promisify } = require('util');
+const resolve4 = promisify(dns.resolve4);
+
+const [ip] = await resolve4('smtp.gmail.com');
+
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',   // ← verify this is correct
-  port: 587,                 // ← try 587 if 465 fails
-  secure: false,      
-    family: 4,        // false for 587, true for 465
+  host: ip,       // use resolved IPv4 directly
+  port: 587,
+  secure: false,
+  family: 4,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  connectionTimeout: 10000,  // increase if needed
+  tls: {
+    servername: 'smtp.gmail.com'  // required when using IP instead of hostname
+  }
 });
 
 // Test the connection explicitly
