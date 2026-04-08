@@ -17,7 +17,6 @@ function daysLeftUntil(deadline) {
 
 async function sendReminderEmail({ to, subject, text }) {
   await transporter.sendMail({
-    from: process.env.EMAIL,
     to,
     subject,
     text,

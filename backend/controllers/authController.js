@@ -6,7 +6,6 @@ const transporter = require("../config/mail");
 const Otp = require("../models/otpSchema");
 const otpGenerator = require("otp-generator");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
 const authCookieOptions = {
     httpOnly: true,
     secure: true,
@@ -134,12 +133,23 @@ async function sendOtp(req, res) {
         console.log("[sendOtp] OTP saved for", email);
 
         await transporter.sendMail({
-            from: process.env.EMAIL || process.env.EMAIL_USER,
             to: email,
-            subject: "OTP Verification",
-            text: `Your OTP is ${otp}`,
-        })
-
+            subject: "Welcome to Trakio - Verify your email",
+            text: `Welcome to Trakio!\n\nThank you for creating your account. Please verify your email address using the OTP below:\n\n${otp}\n\nThis code is valid for a limited time. If you did not request this, please ignore this email.`,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937; max-width: 560px; margin: 0 auto;">
+                    <h2 style="margin-bottom: 8px; color: #111827;">Welcome to Trakio</h2>
+                    <p style="margin-top: 0;">Thank you for creating your account.</p>
+                    <p>Please verify your email address using the OTP below:</p>
+                    <div style="font-size: 28px; font-weight: 700; letter-spacing: 4px; padding: 12px 16px; background: #f3f4f6; border-radius: 8px; display: inline-block; margin: 8px 0 12px;">
+                        ${otp}
+                    </div>
+                    <p style="margin: 0;">This code is valid for a limited time.</p>
+                    <p style="color: #6b7280; font-size: 14px;">If you did not request this, you can safely ignore this email.</p>
+                    <p style="margin-top: 18px;">Regards,<br/>Trakio Team</p>
+                </div>
+            `,
+        });
         console.log("[sendOtp] email sent for", email);
 
         res.json({

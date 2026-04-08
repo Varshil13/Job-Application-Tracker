@@ -1,14 +1,25 @@
-const nodemailer = require("nodemailer");
-const dns = require("dns");
+const { Resend } = require("resend");
 
-dns.setDefaultResultOrder("ipv4first"); // ← forces IPv4 on Railway
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASS,
+const DEFAULT_FROM = process.env.EMAIL_FROM || "noreply@trakio-v1.vshil.me";
+
+const transporter = {
+  async sendMail({ to, subject, text, html, from }) {
+    const { data, error } = await resend.emails.send({
+      from: from || DEFAULT_FROM,
+      to,
+      subject,
+      text,
+      html,
+    });
+
+    if (error) {
+      throw new Error(error.message || "Failed to send email");
+    }
+
+    return data;
   },
-});
+};
 
 module.exports = transporter;
