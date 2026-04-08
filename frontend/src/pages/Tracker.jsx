@@ -125,49 +125,40 @@ function Timeline({ app }) {
   }));
 
   return (
-    <div className="flex-1 flex flex-col gap-0.5 justify-center">
-      <div className="flex items-end">
-        {steps.map(({ step, i }) => (
-          <div key={step} className="flex items-center">
-            <div className="w-4 flex justify-center">
-              <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
-                {step}
-              </span>
-            </div>
-            {i < steps.length - 1 && <div className="w-12" />}
-          </div>
-        ))}
-      </div>
-
-      <div className="flex items-center">
-        {steps.map(({ step, i, filled }) => (
-          <div key={step} className="flex items-center">
+    <div className="flex items-center">
+      {steps.map(({ step, i, filled, date }) => (
+        <div key={step} className="flex items-center">
+          {/* Dot + label stacked */}
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-[10px] text-slate-400 font-medium whitespace-nowrap">
+              {step}
+            </span>
             <div
-              className={`w-4 h-4 rounded-full shrink-0 transition-colors ${filled ? "bg-teal-700" : "bg-slate-200 border-2 border-slate-300"}`}
+              className={`w-4 h-4 rounded-full shrink-0 transition-colors ${
+                filled
+                  ? "bg-teal-700"
+                  : "bg-slate-200 border-2 border-slate-300"
+              }`}
             />
-            {i < steps.length - 1 && (
-              <div
-                className={`w-12 border-t-2 border-dashed transition-colors ${!isTerminal && activeIdx > i ? "border-teal-700" : "border-slate-200"}`}
-              />
-            )}
+            <span
+              className={`text-[10px] whitespace-nowrap ${filled && date ? "text-teal-700" : "text-transparent"}`}
+            >
+              {formatDate(date) || "·"}
+            </span>
           </div>
-        ))}
-      </div>
 
-      <div className="flex items-start">
-        {steps.map(({ step, i, filled, date }) => (
-          <div key={step} className="flex items-center">
-            <div className="w-4 flex justify-center">
-              <span
-                className={`text-[10px] whitespace-nowrap ${filled && date ? "text-teal-700" : "text-transparent"}`}
-              >
-                {formatDate(date) || "·"}
-              </span>
-            </div>
-            {i < steps.length - 1 && <div className="w-12" />}
-          </div>
-        ))}
-      </div>
+          {/* Connector */}
+          {i < steps.length - 1 && (
+            <div
+              className={`w-12 border-t-2 border-dashed transition-colors ${
+                !isTerminal && activeIdx > i
+                  ? "border-teal-700"
+                  : "border-slate-200"
+              }`}
+            />
+          )}
+        </div>
+      ))}
     </div>
   );
 }
@@ -233,11 +224,11 @@ function AppCard({ app, onStatusChange, onOpenDetails }) {
         </>
       )}
 
-      <div className="min-w-[176px]">
-        <p className="text-sm font-semibold text-slate-800 leading-tight">
+      <div className="w-44 shrink-0">
+        <p className="text-sm font-semibold text-slate-800 leading-tight truncate">
           {app.company}
         </p>
-        <p className="text-xs text-slate-400 mt-0.5">{app.role}</p>
+        <p className="text-xs text-slate-400 mt-0.5 truncate">{app.role}</p>
         <div className="flex items-center gap-1 mt-0.5">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path
@@ -245,15 +236,21 @@ function AppCard({ app, onStatusChange, onOpenDetails }) {
               fill="#94a3b8"
             />
           </svg>
-          <span className="text-[11px] text-slate-400">{app.location}</span>
+          <span className="text-[11px] text-slate-400 truncate">
+            {app.location}
+          </span>
         </div>
       </div>
-      <Timeline app={app} />
-      <StatusDropdown
-        current={app.status}
-        onChange={handleChange}
-        appId={app.id}
-      />
+      <div className="hidden sm:flex flex-1 min-w-0">
+        <Timeline app={app} />
+      </div>
+      <div className="hidden sm:block">
+        <StatusDropdown
+          current={app.status}
+          onChange={handleChange}
+          appId={app.id}
+        />
+      </div>
     </div>
   );
 }

@@ -1,10 +1,7 @@
 import { FileText, BriefcaseBusiness, LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function WorkspaceLayout({
-  onLogout,
-  children,
-}) {
+export default function WorkspaceLayout({ onLogout, children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,7 +17,8 @@ export default function WorkspaceLayout({
         }
       : {
           title: "Applications",
-          description: "Track your job applications and update progress quickly.",
+          description:
+            "Track your job applications and update progress quickly.",
         };
 
   return (
@@ -31,17 +29,15 @@ export default function WorkspaceLayout({
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e6fffa]/80">
               Trakio
             </p>
-            <h2 className="mt-2 text-2xl font-bold text-[#e6fffa]">{sectionContent.title}</h2>
+            <h2 className="mt-2 text-2xl font-bold text-[#e6fffa]">
+              {sectionContent.title}
+            </h2>
             <p className="mt-2 text-sm text-[#e6fffa]/85">
               {sectionContent.description}
             </p>
           </div>
 
-
           <nav className="space-y-2">
-
-
-            
             <button
               type="button"
               onClick={() => {
@@ -70,18 +66,16 @@ export default function WorkspaceLayout({
               <FileText size={18} />
               Document Vault
             </button>
-
-        
           </nav>
         </div>
 
         <button
           type="button"
           onClick={onLogout}
-          className="flex w-full items-center gap-3 rounded-xl border border-[#0d635d] bg-[#e6fffa] px-4 py-3 text-sm font-semibold text-[#0f766e] transition hover:bg-[#ccf7ef]"
+          className="flex items-center justify-center gap-1.5 rounded-xl bg-[#e6fffa] px-3 py-2 text-sm font-semibold text-[#0f766e] transition hover:bg-[#ccf7ef]"
         >
-          <LogOut size={18} />
-          Logout
+          <LogOut size={16} />
+          <span className="hidden sm:inline">Logout</span>
         </button>
       </aside>
 
@@ -108,6 +102,13 @@ export default function WorkspaceLayout({
             }`}
           >
             Applications
+          </button>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="flex items-center justify-center rounded-xl bg-[#e6fffa] px-3 py-2 text-[#0f766e] transition hover:bg-[#ccf7ef]"
+          >
+            <LogOut size={16} />
           </button>
         </div>
 
