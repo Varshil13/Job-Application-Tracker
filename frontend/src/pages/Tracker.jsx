@@ -235,9 +235,9 @@ function AppCard({ app, onStatusChange, onOpenDetails }) {
 
       <div className="min-w-[176px]">
         <p className="text-sm font-semibold text-slate-800 leading-tight">
-          {app.role}
+          {app.company}
         </p>
-        <p className="text-xs text-slate-400 mt-0.5">{app.company}</p>
+        <p className="text-xs text-slate-400 mt-0.5">{app.role}</p>
         <div className="flex items-center gap-1 mt-0.5">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <path
@@ -295,9 +295,12 @@ export default function Tracker() {
     const fetchApplications = async () => {
       try {
         //get all applications for the user
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/applications/getallapplications`, {
-          credentials: "include",
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/applications/getallapplications`,
+          {
+            credentials: "include",
+          },
+        );
         const result = await res.json();
         const data = result.data;
 
