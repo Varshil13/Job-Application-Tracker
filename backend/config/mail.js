@@ -4,7 +4,8 @@
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',   // ← verify this is correct
   port: 587,                 // ← try 587 if 465 fails
-  secure: false,             // false for 587, true for 465
+  secure: false,      
+    family: 4,        // false for 587, true for 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
