@@ -6,6 +6,9 @@ const { jobPostingExtractor } = require("./services/jobPostingExtractor");
 const { resumeParse } = require("./services/resumeExtractor");
 const { analyseMatchResume, extractFromText } = require("./services/AIExtractor");
 
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first"); 
+
 const fs = require("fs")
 
 
