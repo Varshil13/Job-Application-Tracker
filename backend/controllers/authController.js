@@ -134,8 +134,8 @@ async function sendOtp(req, res) {
         console.log("[sendOtp] OTP saved for", email);
 
         await transporter.sendMail({
-            from: process.env.EMAIL,
-            to: process.env.EMAIL_PASS,
+            from: process.env.EMAIL || process.env.EMAIL_USER,
+            to: email,
             subject: "OTP Verification",
             text: `Your OTP is ${otp}`,
         })
