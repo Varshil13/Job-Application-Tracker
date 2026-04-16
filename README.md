@@ -1,4 +1,4 @@
-# Job Application Tracker (AI-Powered)
+# Job Application Tracker 
 
 A full-stack **Job Application Tracker** built using the MERN stack, designed to help users efficiently manage, track, and optimize their job applications with status tracking— enhanced with **AI-powered resume insights and automation**.
 
